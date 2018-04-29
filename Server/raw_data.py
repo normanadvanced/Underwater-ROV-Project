@@ -13,23 +13,23 @@ for i in range(len(data_raw) - 5):
     data_shaved += (data_raw[i + 2])
     # print(data_shaved)
 
-    try:
-        if data_shaved[0:1] == "T":  # for temperature
-            temperature = float(data_shaved[13:-8])
-        elif data_shaved[0:1] == "D":  # for depth
-            depth = float(data_shaved[6:-4])
-        elif len(data_shaved) > 9:  # for gyro
-            imu = data_shaved.split(" ")
-            yaw = imu[0]
-            roll = imu[1]
-            pitch = imu[2]
+try:
+    if data_shaved[0:1] == "T":  # for temperature
+        temperature = float(data_shaved[13:-8])
+    elif data_shaved[0:1] == "D":  # for depth
+        depth = float(data_shaved[6:-4])
+    elif len(data_shaved) > 9:  # for gyro
+        imu = data_shaved.split(" ")
+        yaw = imu[0]
+        roll = imu[1]
+        pitch = imu[2]
 
-    except IndexError:
-        print("")
-    except TypeError:
-        print("")
-    except ValueError:
-        print("")
+except IndexError:
+    print("")
+except TypeError:
+    print("")
+except ValueError:
+    print("")
 
 
 def pass_data(child_conn):
