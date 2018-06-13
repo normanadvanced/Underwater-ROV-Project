@@ -1,12 +1,13 @@
 import pygame
 import pywavefront
+from pywavefront import visualization
 import pyglet
 from pyglet.gl import *
 import ctypes
 
 rotation = 0
-meshes = pywavefront.Wavefront("ROV_assembly_oriented_05.obj")
-meshes.draw()
+rov = pywavefront.Wavefront("ROV_assembly_oriented_05.obj")
+
 
 temperature = 0
 depth = 0
@@ -44,7 +45,7 @@ def on_draw():
   #print(roll, pitch, yaw)
   #print("Depth: %.2f" % depth, "Temperature: %.2f" % temperature)
 
-  meshes.draw()
+  visualization.draw(rov)
 
 
 def update(dt):
