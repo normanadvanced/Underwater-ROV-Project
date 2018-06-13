@@ -1,6 +1,6 @@
 import serial
 
-arduino = serial.Serial('COM4', 115200, timeout=.1)  # COM4 for windows, /dev/ttyAMC0
+arduino = serial.Serial('/dev/ttyACM0', 115200, timeout=.1)  # COM4 for windows, /dev/ttyAMC0
 global roll, pitch, yaw, temperature, depth
 temperature = 0
 depth = 0
