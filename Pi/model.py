@@ -1,4 +1,3 @@
-import pygame
 import pywavefront
 from pywavefront import visualization
 import pyglet
