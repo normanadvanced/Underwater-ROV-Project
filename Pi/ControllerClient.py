@@ -17,26 +17,23 @@ ESCLEFT = 21
 ESCBACKLIFT = 13 #unknown so far
 ESCFRONTLIFT = 27 #also still known so far
 
-baseSpeed = 1488
-rightSpeed = 1488
-leftSpeed = 1488
-vertSpeed = 0 #default speed
-pictureCount = 0
-started = False
-leftReversed = False
-rightReversed = False
-rightHatPressed = False
-leftHatPressed = False
-upHatPressed = False
-downHatPressed = False
-leftJoystickLeft = False
-leftJoystickRight = False
-turbo = 1
+baseSpeed = 1488	#the speed determined by r1 and l1
+rightSpeed = 1488	#the speed that the right motor is moving at
+leftSpeed = 1488	#the speed that the left motor is moving at
+pictureCount = 0	#GUI thing, can delete
+started = False		#Checks if the motors should be able to move or not
+rightHatPressed = False	#Checks if the right hat has been pressed
+leftHatPressed = False	#Checks if the left hat has been pressed
+upHatPressed = False	#Checks if the up hat has been pressed
+downHatPressed = False	#Checks if the down hat has been pressed
+leftJoystickLeft = False	#Checks if the left joystick has been moved to the left
+leftJoystickRight = False	#Checks if the left joystick has been moved to the right
+turbo = 1		#Checks if the turns need to be moved turbo
 
 server = socket(AF_INET, SOCK_STREAM)
 server.connect(ADDRESS)
 
-def _triangle():
+def _triangle():		#please look at Chris/Pranav. Not nessecery for movement
     '''takes a picture'''
     global pictureCount
     camera = picamera.PiCamera()

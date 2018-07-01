@@ -7,6 +7,11 @@
 
 import sys
 import picamera
+from ..Pi.ControllerClient import *
+
+print(HOST)
+
+
 
 camera = picamera.PiCamera()
 
