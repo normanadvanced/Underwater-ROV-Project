@@ -6,8 +6,8 @@ from codecs import decode
 import pigpio
 import picamera
 
-HOST = '10.42.0.1'
-PORT = 5046
+HOST = '10.204.24.66'
+PORT = 5000
 BUFSIZE = 1024
 ADDRESS = (HOST, PORT)
 
