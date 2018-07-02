@@ -177,105 +177,124 @@ def _calibrate(time):
     #listen for the sound
     #get the time when it hears the sound
     #compare the recieved time to the time sent and set that to a variable
-    
+
+
+def get_honk_time():
+    heard = open('sent.txt', 'a')
+    heard.seek(0)
+    heard.truncate()
+    while True:
+        server_data = decode(server.recv(BUFSIZE), "ascii")
+        if server_data[0:3] == "Honk":
+            honk_time = server_data[0:10]
+            heard.write(float(honk_time))
+            heard.flush()
+        if os.path.getsize('sent.txt') > 1000000:  # clear file after it reaches 1 MB
+            f.seek(0)
+            f.truncate()
+
+
+horn_honked_thread = threading.Thread(target=get_honk_time())
+horn_honked_thread.daemon = True
+horn_honked_thread.start()
 
 while True:
 
-	button = decode(server.recv(BUFSIZE), "ascii")
-	print(button)
-	try:
-		analogButton = float(button)
-		analogButton = round(analogButton,4)
-		print("got here %s" % analogButton)
-		if analogButton < 2.5 and analogButton > -2.5: 
-			if analogButton < 0:
-				_l2(analogButton)
-			else:
-				_r2(analogButton)
- 
-	except ValueError:
-		if button == "circle":
-			_circle()
+    button = decode(server.recv(BUFSIZE), "ascii")
+    print(button)
+    try:
+        analogButton = float(button)
+        analogButton = round(analogButton, 4)
+        print("got here %s" % analogButton)
+        if analogButton < 2.5 and analogButton > -2.5:
+            if analogButton < 0:
+                _l2(analogButton)
+            else:
+                _r2(analogButton)
 
-		elif button == "x":
-			_x()
-			#started = False
-			#print("got this far")
+    except ValueError:
+        if button == "circle":
+            _circle()
 
-		elif button == "square":
-			_square()
+        elif button == "x":
+            _x()
+            # started = False
+            # print("got this far")
 
-		elif button == "triangle":
-			_triangle()
+        elif button == "square":
+            _square()
 
-		elif button == "center":
-			_center()
-			server.close()
-			break
+        elif button == "triangle":
+            _triangle()
 
-		elif button == "r1":
-			_r1()
+        elif button == "center":
+            _center()
+            server.close()
+            break
 
-		elif button == "l1":
-			_l1()
+        elif button == "r1":
+            _r1()
 
-		elif button == "upHatPressed":
-			upHatPressed = True
-			downHatPressed = False
-		elif button == "downHatPressed":
-			downHatPressed = True
-			upHatPressed = False
-		elif button == "no verticle hat pressed":
-			upHatPressed = False
-			downHatPressed = False
+        elif button == "l1":
+            _l1()
 
-		elif button == "left":
-			#_leftJoystickLeft()
-			leftJoystickLeft = True
-		elif button == "right":
-			#_leftJoystickRight()
-			leftJoystickRight = True
-		elif button == "not left or right":
-			leftJoystickRight = False
-			leftJoystickLeft = False
+        elif button == "upHatPressed":
+            upHatPressed = True
+            downHatPressed = False
+        elif button == "downHatPressed":
+            downHatPressed = True
+            upHatPressed = False
+        elif button == "no verticle hat pressed":
+            upHatPressed = False
+            downHatPressed = False
 
-		elif button == "leftJoystickPressed":
-			turbo = 2
-			
-		elif button == "leftJoystickReleased":
-			turbo = 1
+        elif button == "left":
+            # _leftJoystickLeft()
+            leftJoystickLeft = True
+        elif button == "right":
+            # _leftJoystickRight()
+            leftJoystickRight = True
+        elif button == "not left or right":
+            leftJoystickRight = False
+            leftJoystickLeft = False
 
-		elif button == "rightHatPressed":
-			rightHatPressed = True
-			leftHatPressed = False
-		elif button == "leftHatPressed":
-			leftHatPressed = True
-			rightHatPressed = False
-		elif button == "no horizontal hat pressed":
-			rightHatPressed = False
-			leftHatPressed = False
-		
-		if upHatPressed:
-			_upHat()
-		elif downHatPressed:
-			_downHat()
-		else:
-			_noVerticleHat()
+        elif button == "leftJoystickPressed":
+            turbo = 2
 
-		if rightHatPressed:
-			_rightHat()
-		elif leftHatPressed:
-			_leftHat()
-		elif leftJoystickRight:
-			_leftJoystickRight()
-		elif leftJoystickLeft:
-			_leftJoystickLeft()
-		else:
-			_noHorizontalHatOrJoystick()
+        elif button == "leftJoystickReleased":
+            turbo = 1
 
-		if started:
-			pi.set_servo_pulsewidth(ESCRIGHT, rightSpeed)
-			pi.set_servo_pulsewidth(ESCLEFT, leftSpeed)
-		else:
-			pi.set_servo_pulsewidth(ESCRIGHT, 1488)
-			pi.set_servo_pulsewidth(ESCLEFT, 1488)
+        elif button == "rightHatPressed":
+            rightHatPressed = True
+            leftHatPressed = False
+        elif button == "leftHatPressed":
+            leftHatPressed = True
+            rightHatPressed = False
+        elif button == "no horizontal hat pressed":
+            rightHatPressed = False
+            leftHatPressed = False
+
+        if upHatPressed:
+            _upHat()
+        elif downHatPressed:
+            _downHat()
+        else:
+            _noVerticleHat()
+
+        if rightHatPressed:
+            _rightHat()
+        elif leftHatPressed:
+            _leftHat()
+        elif leftJoystickRight:
+            _leftJoystickRight()
+        elif leftJoystickLeft:
+            _leftJoystickLeft()
+        else:
+            _noHorizontalHatOrJoystick()
+
+        if started:
+            pi.set_servo_pulsewidth(ESCRIGHT, rightSpeed)
+            pi.set_servo_pulsewidth(ESCLEFT, leftSpeed)
+        else:
+            pi.set_servo_pulsewidth(ESCRIGHT, 1488)
+            pi.set_servo_pulsewidth(ESCLEFT, 1488)
