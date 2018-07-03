@@ -1,12 +1,12 @@
 import serial
 import os
 import time
-arduino = serial.Serial('COM4', 115200, timeout=.1)  # COM4 for windows, /dev/ttyAMC0
+arduino = serial.Serial('/dev/ttyACM0', 115200, timeout=.1)  # COM4 for windows, /dev/ttyACM0
 global roll, pitch, yaw, temperature, depth
 temperature = 0
 depth = 0
 roll = yaw = pitch = 0.00
-
+heard_time = 0.00
 
 f = open('data.txt', 'a')
 f.seek(0)   # clears file
@@ -28,8 +28,7 @@ while True:
         elif data_shaved[0:1] == "D":  # for depth
             depth = float(data_shaved[6:-4])
         elif data_shaved[0:1] == "P": # for hydrophone
-            heard_time = time.time()
-            # Not Finished
+            heard_time = float(time.time())
         elif len(data_shaved) > 9:  # for gyro
             imu = data_shaved.split(" ")
             yaw = float(imu[0])
@@ -44,7 +43,7 @@ while True:
         print("")
 
     #print(str([pitch, roll, yaw, temperature, depth])+ '\n')
-    f.write(str([pitch, roll, yaw, temperature, depth]) + '\n')
+    f.write(str([pitch, roll, yaw, temperature, depth, heard_time]) + '\n')
     f.flush()
     if os.path.getsize('data.txt') > 1000000:
         f.seek(0)

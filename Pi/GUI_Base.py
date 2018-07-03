@@ -8,14 +8,16 @@
 import sys
 import picamera
 import threading
-
+leftSpeed = 0
 class Controller():
     def __init__(self):
         import ControllerClient as cli
 
 def create_controller():
     controller = Controller()
-   
+    while True:
+        leftSpeed = controller.leftSpeed
+
 cli_thread = threading.Thread(target=create_controller)
 cli_thread.daemon = True
 cli_thread.start()
@@ -71,6 +73,7 @@ class New_Toplevel():
 
     def __init__(self, top=None):
         self.text_roll = self.text_yaw = self.text_pitch = self.text_temperature = self.text_depth = "0"
+        self.leftSpeed = 0
         '''This class configures and populates the toplevel window.
            top is the toplevel containing window.'''
         _bgcolor = '#d9d9d9'  # X11 color: 'gray85'
@@ -141,6 +144,14 @@ class New_Toplevel():
         self.RollLabel.configure(relief=FLAT)
         self.RollLabel.configure(text=self.text_roll)
 
+        self.PitchLabel = ttk.Label(self.Frame3)
+        self.PitchLabel.place(relx=0.01, rely=0.34, height=16, width=171)
+        self.PitchLabel.configure(background="#d9d9d9")
+        self.PitchLabel.configure(foreground="#000000")
+        self.PitchLabel.configure(font="TkDefaultFont")
+        self.PitchLabel.configure(relief=FLAT)
+        self.PitchLabel.configure(text=self.text_pitch)
+
         self.YawLabel = ttk.Label(self.Frame3)
         self.YawLabel.place(relx=0.01, rely=0.44, height=16, width=83)
         self.YawLabel.configure(background="#d9d9d9")
@@ -149,13 +160,10 @@ class New_Toplevel():
         self.YawLabel.configure(relief=FLAT)
         self.YawLabel.configure(text=self.text_yaw)
 
-        self.PitchLabel = ttk.Label(self.Frame3)
-        self.PitchLabel.place(relx=0.01, rely=0.34, height=16, width=171)
-        self.PitchLabel.configure(background="#d9d9d9")
-        self.PitchLabel.configure(foreground="#000000")
-        self.PitchLabel.configure(font="TkDefaultFont")
-        self.PitchLabel.configure(relief=FLAT)
-        self.PitchLabel.configure(text=self.text_pitch)
+        self.lspeed_bar = ttk.Progressbar(self.Frame3)
+        self.lspeed_bar.place(relx=0.51, rely=0.36, height=16, width=171)
+        self.lspeed_bar.configure(maximum=1998)
+        self.lspeed_bar.configure(variable=self.leftSpeed)
 
         self.Button1 = Button(top)
         self.Button1.place(relx=0.59, rely=0.53, height=66, width=520)
@@ -204,8 +212,17 @@ class New_Toplevel():
         self.text_yaw = ("Yaw: " + str(self.yaw))
         self.YawLabel.configure(text=self.text_yaw)
 
+        self.leftSpeed = leftSpeed
+        #self.rightSpeed = controller.rightSpeed
+        #self.frontSpeed = controller.frontSpeed
+        #self.backSpeed = controller.backSpeed
+        #self.isStarted = controller.started
+        #self.controllerScreenshot = controller.trianglePress
+
         # updates the Labels every 100 ms
         self.Frame3.after(100, self.updateData)
+
+
 
 
 

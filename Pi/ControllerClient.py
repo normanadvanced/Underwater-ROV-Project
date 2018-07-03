@@ -5,8 +5,11 @@ from time import sleep
 from codecs import decode
 import pigpio
 import picamera
+import threading
+from GUI_Base import New_Toplevel
+gui = New_Toplevel()
 
-HOST = '10.204.24.66'
+HOST = '169.254.12.66'
 PORT = 5000
 BUFSIZE = 1024
 ADDRESS = (HOST, PORT)
@@ -20,6 +23,8 @@ ESCFRONTLIFT = 27 #also still known so far
 baseSpeed = 1488	#the speed determined by r1 and l1
 rightSpeed = 1488	#the speed that the right motor is moving at
 leftSpeed = 1488	#the speed that the left motor is moving at
+frontSpeed = 0
+backSpeed = 0
 pictureCount = 0	#GUI thing, can delete
 started = False		#Checks if the motors should be able to move or not
 rightHatPressed = False	#Checks if the right hat has been pressed
@@ -29,17 +34,14 @@ downHatPressed = False	#Checks if the down hat has been pressed
 leftJoystickLeft = False	#Checks if the left joystick has been moved to the left
 leftJoystickRight = False	#Checks if the left joystick has been moved to the right
 turbo = 1		#Checks if the turns need to be moved turbo
+trianglePress = 0
 
 server = socket(AF_INET, SOCK_STREAM)
 server.connect(ADDRESS)
 
+
 def _triangle():		#please look at Chris/Pranav. Not nessecery for movement
-    '''takes a picture'''
-    global pictureCount
-    camera = picamera.PiCamera()
-    camera.capture('image.jpg')
-    pictureCount = pictureCount +1
-    print("cheese!")
+    trianglePress = 1
 
 def _square():
     '''toggle the GUI'''
@@ -136,7 +138,7 @@ def _downHat():
 	pi.set_servo_pulsewidth(ESCBACKLIFT, 1538)
 	pi.set_servo_pulsewidth(ESCFRONTLIFT, 1438)
 
-def _noVerticleHat():
+def _noVerticalHat():
 	'''makes the robot stop pitching'''
 	pi.set_servo_pulsewidth(ESCBACKLIFT, 1488)
 	pi.set_servo_pulsewidth(ESCFRONTLIFT, 1488)
@@ -183,12 +185,14 @@ def get_honk_time():
     heard = open('sent.txt', 'a')
     heard.seek(0)
     heard.truncate()
+    print("starting horn thread");
     while True:
         server_data = decode(server.recv(BUFSIZE), "ascii")
-        if server_data[0:3] == "Honk":
-            honk_time = server_data[0:10]
+        if str(server_data)[0:4] == "Honk":
+            honk_time = server_data[11:]
             heard.write(float(honk_time))
             heard.flush()
+            print(honk_time)
         if os.path.getsize('sent.txt') > 1000000:  # clear file after it reaches 1 MB
             f.seek(0)
             f.truncate()
@@ -244,7 +248,7 @@ while True:
         elif button == "downHatPressed":
             downHatPressed = True
             upHatPressed = False
-        elif button == "no verticle hat pressed":
+        elif button == "no vertical hat pressed":
             upHatPressed = False
             downHatPressed = False
 
@@ -279,7 +283,7 @@ while True:
         elif downHatPressed:
             _downHat()
         else:
-            _noVerticleHat()
+            _noVerticalHat()
 
         if rightHatPressed:
             _rightHat()
