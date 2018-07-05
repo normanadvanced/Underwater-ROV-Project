@@ -6,8 +6,8 @@ from codecs import decode
 import pigpio
 import picamera
 import threading
-from GUI_Base import New_Toplevel
-gui = New_Toplevel()
+#from GUI_Base import New_Toplevel
+#gui = New_Toplevel()
 
 HOST = '169.254.12.66'
 PORT = 5000
@@ -41,7 +41,8 @@ while True:
         server = socket(AF_INET, SOCK_STREAM)
         server.connect(ADDRESS)
         break
-
+    except:
+        pass
 
 def _triangle():		#please look at Chris/Pranav. Not nessecery for movement
     trianglePress = 1
