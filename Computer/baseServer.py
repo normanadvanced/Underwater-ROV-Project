@@ -31,7 +31,7 @@ lValue = 0
 rValue = 0
 
 #stuff needed for the server
-HOST = "10.42.0.1"
+HOST = "169.254.208.126"
 PORT = 5000
 ADDRESS = (HOST, PORT)
 server = socket(AF_INET, SOCK_STREAM)
@@ -47,7 +47,11 @@ while True:
         pygame.display.init()
         screen = pygame.display.set_mode((1,1))
         break
-
+    except:
+        os.system("sudo killall 'sudo ds4drv'")
+        os.system("sudo ds4drv")
+        print("Please connect Joystick.")
+        time.sleep(5)
 #debug for server connection
 print("Waiting for connection . . .")
 client, address = server.accept()
