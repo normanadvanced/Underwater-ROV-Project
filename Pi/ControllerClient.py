@@ -36,8 +36,11 @@ leftJoystickRight = False	#Checks if the left joystick has been moved to the rig
 turbo = 1		#Checks if the turns need to be moved turbo
 trianglePress = 0
 
-server = socket(AF_INET, SOCK_STREAM)
-server.connect(ADDRESS)
+while True:
+    try:
+        server = socket(AF_INET, SOCK_STREAM)
+        server.connect(ADDRESS)
+        break
 
 
 def _triangle():		#please look at Chris/Pranav. Not nessecery for movement
