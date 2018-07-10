@@ -8,15 +8,20 @@
 import sys
 import picamera
 import threading
-leftSpeed = 0
+
+leftSpeed = righSpeed = frontSpeed = backSpeed = 0
 class Controller():
     def __init__(self):
         import ControllerClient as cli
 
 def create_controller():
+    global leftSpeed, rightSpeed, frontSpeed, backSpeed
     controller = Controller()
     while True:
         leftSpeed = controller.leftSpeed
+        rightSpeed = controller.rightSpeed
+        frontSpeed = controller.frontSpeed
+        backSpeed = controller.backSpeed
 
 cli_thread = threading.Thread(target=create_controller)
 cli_thread.daemon = True
@@ -72,6 +77,7 @@ def destroy_New_Toplevel():
 class New_Toplevel():
 
     def __init__(self, top=None):
+        global leftSpeed, rightSpeed, frontSpeed, backSpeed
         self.text_roll = self.text_yaw = self.text_pitch = self.text_temperature = self.text_depth = "0"
         self.leftSpeed = 0
         '''This class configures and populates the toplevel window.
@@ -106,7 +112,7 @@ class New_Toplevel():
         self.CameraFrame.configure(highlightbackground="#d9d9d9")
         self.CameraFrame.configure(highlightcolor="black")
         self.CameraFrame.configure(width=530)
-	#camera.start_preview(fullscreen=False, window = 
+        #camera.start_preview(fullscreen=False, window =
 
         self.ModelFrame = Frame(top)
         self.ModelFrame.place(relx=0.01, rely=0.03, relheight=0.51, relwidth=0.39)
@@ -160,10 +166,30 @@ class New_Toplevel():
         self.YawLabel.configure(relief=FLAT)
         self.YawLabel.configure(text=self.text_yaw)
 
+        self.leftSpeed = ttk.IntVar()
+        self.rightSpeed = ttk.IntVar()
+        self.frontSpeed = ttk.IntVar()
+        self.backSpeed = ttk.IntVar()
+
         self.lspeed_bar = ttk.Progressbar(self.Frame3)
-        self.lspeed_bar.place(relx=0.51, rely=0.36, height=16, width=171)
+        self.lspeed_bar.place(relx=0.71, rely=0.2, height=16, width=171)
         self.lspeed_bar.configure(maximum=1998)
         self.lspeed_bar.configure(variable=self.leftSpeed)
+
+        self.rspeed_bar = ttk.Progressbar(self.Frame3)
+        self.rspeed_bar.place(relx=0.71, rely=0.4, height=16, width=171)
+        self.rspeed_bar.configure(maximum=1998)
+        self.rspeed_bar.configure(variable=self.rightSpeed)
+
+        self.fspeed_bar = ttk.Progressbar(self.Frame3)
+        self.fspeed_bar.place(relx=0.71, rely=0.6, height=16, width=171)
+        self.fspeed_bar.configure(maximum=1998)
+        self.fspeed_bar.configure(variable=self.frontSpeed)
+
+        self.bspeed_bar = ttk.Progressbar(self.Frame3)
+        self.bspeed_bar.place(relx=0.71, rely=0.8, height=16, width=171)
+        self.bspeed_bar.configure(maximum=1998)
+        self.bspeed_bar.configure(variable=self.backSpeed)
 
         self.Button1 = Button(top)
         self.Button1.place(relx=0.59, rely=0.53, height=66, width=520)
@@ -191,7 +217,7 @@ class New_Toplevel():
         WriteAmount.write("%d" % self.amount)
 
     def updateData(self):
-
+        global leftSpeed, rightSpeed, frontSpeed, backSpeed
         # raw_data writes to data.txt for the gui and model to read
         f = open('data.txt', 'r')
         self.data = (f.readlines()[-1])[1:-2].split(',')
@@ -212,10 +238,10 @@ class New_Toplevel():
         self.text_yaw = ("Yaw: " + str(self.yaw))
         self.YawLabel.configure(text=self.text_yaw)
 
-        self.leftSpeed = leftSpeed
-        #self.rightSpeed = controller.rightSpeed
-        #self.frontSpeed = controller.frontSpeed
-        #self.backSpeed = controller.backSpeed
+        self.leftSpeed.set(leftSpeed)
+        self.rightSpeed.set(rightSpeed)
+        self.frontSpeed.set(frontSpeed)
+        self.backSpeed.set(backSpeed)
         #self.isStarted = controller.started
         #self.controllerScreenshot = controller.trianglePress
 

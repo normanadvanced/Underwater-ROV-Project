@@ -3,6 +3,16 @@ from pywavefront import visualization
 from pyglet.gl import *
 import ctypes
 from GUI_Base import *
+import os
+import threading
+
+
+def data():
+    os.system("python3 raw_data.py")
+
+data_thread = threading.Thread(target=data)
+data_thread.daemon = True
+data_thread.start()
 
 rotation = 0
 rov = pywavefront.Wavefront("ROV_assembly_oriented_05.obj")

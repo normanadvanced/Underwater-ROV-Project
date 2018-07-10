@@ -6,8 +6,6 @@ from codecs import decode
 import pigpio
 import picamera
 import threading
-#from GUI_Base import New_Toplevel
-#gui = New_Toplevel()
 
 HOST = '169.254.12.66'
 PORT = 5000
