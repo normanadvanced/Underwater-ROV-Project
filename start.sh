@@ -1,5 +1,5 @@
 #!/bin/bash
-sudo ds4drv &
-python3 Computer/baseServer.py &
-vncviewer raspberrypi.local
-sshpass -p "raspberry" ssh -X pi@raspberrypi.local "cd /home/pi/Desktop/Underwater-Rov-Project | sudo bash piStart.sh"
+sudo ds4drv & 
+python3 Computer/baseServer.py & 
+sshpass -p "raspberry" ssh -X -o "StrictHostKeyChecking=no" pi@raspberrypi.local "export DISPLAY=:0; sudo bash /home/pi/Desktop/Underwater-ROV-Project/piStart.sh" &
+vncviewer raspberrypi.local &
