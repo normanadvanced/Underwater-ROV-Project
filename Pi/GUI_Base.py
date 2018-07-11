@@ -8,14 +8,31 @@
 import sys
 import picamera
 import threading
+import time
 
 leftSpeed = rightSpeed = frontSpeed = backSpeed = trianglePress = 0
+
+camera = picamera.PiCamera()
+
+def screenshot():
+    global amount
+    amount = 0
+    AmountFile = open('Photos/amount', 'r')
+    x = AmountFile.readline().strip()
+    try:
+        amount = int(x)
+    except ValueError:
+        print("WHY??")
+    AmountFile.close()
+    camera.capture('Photos/' + 'snapshot' + str(amount) + '.jpg')
+    amount += 1
+    WriteAmount = open('Photos/amount', 'w')
+    WriteAmount.write("%d" % amount)
 
 
 class Controller():
     def __init__(self):
         import ControllerClient as cli
-
 
 def create_controller():
     global leftSpeed, rightSpeed, frontSpeed, backSpeed, trianglePress
@@ -27,18 +44,14 @@ def create_controller():
         backSpeed = controller.backSpeed
         trianglePress = controller.trianglePress
         if trianglePress == 1:
-            self.screenshot()
-            while trianglePress == 1:
-                time.sleep(1)
-                
-               
+            screenshot()
+            time.sleep(1)
+
 
 
 cli_thread = threading.Thread(target=create_controller)
 cli_thread.daemon = True
 cli_thread.start()
-
-camera = picamera.PiCamera()
 
 try:
     from Tkinter import *
@@ -212,28 +225,15 @@ class New_Toplevel():
         self.Button1 = Button(top)
         self.Button1.place(relx=0.48, rely=0.54, height=66, width=655)
         self.Button1.configure(activebackground="#d9d9d9")
-        self.Button1.configure(command=self.screenshot)
+        self.Button1.configure(command=screenshot)
         self.Button1.configure(text='''Take Photo''')
         self.Button1.configure(width=520)
 
         self.updateData()
 
-    def screenshot(self):
-        self.amount = 0
-        AmountFile = open('Photos/amount', 'r')
-        x = AmountFile.readline().strip()
-        try:
-            self.amount = int(x)
-        except ValueError:
-            print("WHY??")
-        AmountFile.close()
-        camera.capture('Photos/' + 'snapshot' + str(self.amount) + '.jpg')
-        self.amount += 1
-        WriteAmount = open('Photos/amount', 'w')
-        WriteAmount.write("%d" % self.amount)
 
     def updateData(self):
-        global leftSpeed, rightSpeed, frontSpeed, backSpeed, trianglePress
+        global leftSpeed, rightSpeed, frontSpeed, backSpeed
         # raw_data writes to data.txt for the gui and model to read
         f = open('data.txt', 'r')
         self.data = (f.readlines()[-1])[1:-2].split(',')
@@ -262,8 +262,7 @@ class New_Toplevel():
         self.rspeed_bar.configure(variable=self.rightSpeed)
         self.fspeed_bar.configure(variable=self.frontSpeed)
         self.bspeed_bar.configure(variable=self.backSpeed)
-        # self.isStarted = controller.started
-        self.trianglePress = trianglePress
+
 
         # updates the Labels every 100 ms
         self.Frame3.after(100, self.updateData)
