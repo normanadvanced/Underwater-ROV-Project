@@ -1,12 +1,13 @@
 from socket import *
 from codecs import *
+import os
 import pygame
 import time
 
 import serial
 import threading
 
-horn = serial.Serial('/dev/ttyACM0', 115200, timeout=.1)  # COM4 for windows, /dev/ttyAMC0
+#horn = serial.Serial('/dev/ttyACM0', 115200, timeout=.1)  # COM4 for windows, /dev/ttyAMC0
 
 #we can clear the que with pygame.event.clear()
 #pygame.event.wait() stops the program until an event becomes available
@@ -48,10 +49,11 @@ while True:
         screen = pygame.display.set_mode((1,1))
         break
     except:
-        os.system("sudo killall 'sudo ds4drv'")
-        os.system("sudo ds4drv")
+        os.system("echo /home/password.txt | sudo -S pkill -9 ds4drv")
+        os.system("echo /home/password.txt | sudo -S ds4drv &")
         print("Please connect Joystick.")
-        time.sleep(5)
+        time.sleep(20)
+        pass
 #debug for server connection
 print("Waiting for connection . . .")
 client, address = server.accept()
