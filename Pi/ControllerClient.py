@@ -43,6 +43,7 @@ while True:
         pass
 
 def _triangle():		#please look at Chris/Pranav. Not nessecery for movement
+    global trianglePress
     trianglePress = 1
 
 def _square():
@@ -205,7 +206,8 @@ horn_honked_thread.daemon = True
 horn_honked_thread.start()
 
 while True:
-
+    global trianglePress
+    trianglePress = 0
     button = decode(server.recv(BUFSIZE), "ascii")
     print(button)
     try:

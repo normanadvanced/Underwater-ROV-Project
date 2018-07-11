@@ -8,31 +8,50 @@
 import sys
 import picamera
 import threading
+import time
 
-leftSpeed = righSpeed = frontSpeed = backSpeed = 0
+leftSpeed = rightSpeed = frontSpeed = backSpeed = trianglePress = 0
+
+camera = picamera.PiCamera()
+
+def screenshot():
+    global amount
+    amount = 0
+    AmountFile = open('Photos/amount', 'r')
+    x = AmountFile.readline().strip()
+    try:
+        amount = int(x)
+    except ValueError:
+        print("WHY??")
+    AmountFile.close()
+    camera.capture('Photos/' + 'snapshot' + str(amount) + '.jpg')
+    amount += 1
+    WriteAmount = open('Photos/amount', 'w')
+    WriteAmount.write("%d" % amount)
+
+
 class Controller():
     def __init__(self):
         import ControllerClient as cli
 
 def create_controller():
-    global leftSpeed, rightSpeed, frontSpeed, backSpeed
+    global leftSpeed, rightSpeed, frontSpeed, backSpeed, trianglePress
     controller = Controller()
     while True:
         leftSpeed = controller.leftSpeed
         rightSpeed = controller.rightSpeed
         frontSpeed = controller.frontSpeed
         backSpeed = controller.backSpeed
+        trianglePress = controller.trianglePress
+        if trianglePress == 1:
+            screenshot()
+            time.sleep(1)
+
+
 
 cli_thread = threading.Thread(target=create_controller)
 cli_thread.daemon = True
 cli_thread.start()
-
-
-
-
-
-
-camera = picamera.PiCamera()
 
 try:
     from Tkinter import *
@@ -41,32 +60,37 @@ except ImportError:
 
 try:
     import ttk
+
     py3 = False
 except ImportError:
     import tkinter.ttk as ttk
+
     py3 = True
 
-#import GUI_support
+
+# import GUI_support
 
 
 def vp_start_gui():
     '''Starting point when module is the main routine.'''
     global val, w, root
     root = Tk()
-    top = New_Toplevel (root)
+    top = New_Toplevel(root)
     root.mainloop()
 
 
-
 w = None
+
+
 def create_New_Toplevel(root, *args, **kwargs):
     '''Starting point when module is imported by another program.'''
     global w, w_win, rt
     rt = root
-    w = Toplevel (root)
-    top = New_Toplevel (w)
+    w = Toplevel(root)
+    top = New_Toplevel(w)
     root.withdraw()
     return (w, top)
+
 
 def destroy_New_Toplevel():
     global w
@@ -75,7 +99,6 @@ def destroy_New_Toplevel():
 
 
 class New_Toplevel():
-
     def __init__(self, top=None):
         global leftSpeed, rightSpeed, frontSpeed, backSpeed
         self.text_roll = self.text_yaw = self.text_pitch = self.text_temperature = self.text_depth = "0"
@@ -84,25 +107,23 @@ class New_Toplevel():
            top is the toplevel containing window.'''
         _bgcolor = '#d9d9d9'  # X11 color: 'gray85'
         _fgcolor = '#000000'  # X11 color: 'black'
-        _compcolor = '#d9d9d9' # X11 color: 'gray85'
-        _ana1color = '#d9d9d9' # X11 color: 'gray85'
-        _ana2color = '#d9d9d9' # X11 color: 'gray85'
+        _compcolor = '#d9d9d9'  # X11 color: 'gray85'
+        _ana1color = '#d9d9d9'  # X11 color: 'gray85'
+        _ana2color = '#d9d9d9'  # X11 color: 'gray85'
         self.style = ttk.Style()
         if sys.platform == "win32":
             self.style.theme_use('winnative')
-        self.style.configure('.',background=_bgcolor)
-        self.style.configure('.',foreground=_fgcolor)
-        self.style.configure('.',font="TkDefaultFont")
-        self.style.map('.',background=
-            [('selected', _compcolor), ('active',_ana2color)])
+        self.style.configure('.', background=_bgcolor)
+        self.style.configure('.', foreground=_fgcolor)
+        self.style.configure('.', font="TkDefaultFont")
+        self.style.map('.', background=
+        [('selected', _compcolor), ('active', _ana2color)])
 
         top.geometry("1280x720+0+0")
         top.title("ROV Command Hub")
         top.configure(background="#d9d9d9")
         top.configure(highlightbackground="#d9d9d9")
         top.configure(highlightcolor="black")
-
-        
 
         self.CameraFrame = Frame(top)
         self.CameraFrame.place(relx=0.59, rely=0.03, relheight=0.51, relwidth=0.39)
@@ -112,7 +133,7 @@ class New_Toplevel():
         self.CameraFrame.configure(highlightbackground="#d9d9d9")
         self.CameraFrame.configure(highlightcolor="black")
         self.CameraFrame.configure(width=530)
-        #camera.start_preview(fullscreen=False, window =
+        camera.start_preview(fullscreen=False, window = (620, 2, 650, 450))
 
         self.ModelFrame = Frame(top)
         self.ModelFrame.place(relx=0.01, rely=0.03, relheight=0.51, relwidth=0.39)
@@ -122,8 +143,6 @@ class New_Toplevel():
         self.ModelFrame.configure(highlightbackground=None)
         self.ModelFrame.configure(highlightcolor=None)
         self.ModelFrame.configure(width=535)
-
-
 
         self.Frame3 = Frame(top)
         self.Frame3.place(relx=0.01, rely=0.65, relheight=0.27, relwidth=0.96)
@@ -166,55 +185,52 @@ class New_Toplevel():
         self.YawLabel.configure(relief=FLAT)
         self.YawLabel.configure(text=self.text_yaw)
 
-        self.leftSpeed = ttk.IntVar()
-        self.rightSpeed = ttk.IntVar()
-        self.frontSpeed = ttk.IntVar()
-        self.backSpeed = ttk.IntVar()
+        self.leftSpeed = IntVar()
+        self.rightSpeed = IntVar()
+        self.frontSpeed = IntVar()
+        self.backSpeed = IntVar()
 
-        self.lspeed_bar = ttk.Progressbar(self.Frame3)
-        self.lspeed_bar.place(relx=0.71, rely=0.2, height=16, width=171)
-        self.lspeed_bar.configure(maximum=1998)
-        self.lspeed_bar.configure(variable=self.leftSpeed)
-
-        self.rspeed_bar = ttk.Progressbar(self.Frame3)
-        self.rspeed_bar.place(relx=0.71, rely=0.4, height=16, width=171)
-        self.rspeed_bar.configure(maximum=1998)
-        self.rspeed_bar.configure(variable=self.rightSpeed)
-
+        self.frontSpeed_name = ttk.Label(self.Frame3)
+        self.frontSpeed_name.place(relx=0.625, rely=0.04, height=16, width=140)
+        self.frontSpeed_name.configure(text="Front Motor Speed")
         self.fspeed_bar = ttk.Progressbar(self.Frame3)
-        self.fspeed_bar.place(relx=0.71, rely=0.6, height=16, width=171)
+        self.fspeed_bar.place(relx=0.61, rely=0.12, height=16, width=171)
         self.fspeed_bar.configure(maximum=1998)
         self.fspeed_bar.configure(variable=self.frontSpeed)
 
+        self.leftSpeed_name = ttk.Label(self.Frame3)
+        self.leftSpeed_name.place(relx=0.525, rely=0.34, height=16, width=140)
+        self.leftSpeed_name.configure(text="Left Motor Speed")
+        self.lspeed_bar = ttk.Progressbar(self.Frame3)
+        self.lspeed_bar.place(relx=0.51, rely=0.42, height=16, width=171)
+        self.lspeed_bar.configure(maximum=1998)
+        self.lspeed_bar.configure(variable=self.leftSpeed)
+
+        self.rightSpeed_name = ttk.Label(self.Frame3)
+        self.rightSpeed_name.place(relx=0.695, rely=0.34, height=16, width=140)
+        self.rightSpeed_name.configure(text="Right Motor Speed")
+        self.rspeed_bar = ttk.Progressbar(self.Frame3)
+        self.rspeed_bar.place(relx=0.68, rely=0.42, height=16, width=171)
+        self.rspeed_bar.configure(maximum=1998)
+        self.rspeed_bar.configure(variable=self.rightSpeed)
+
+        self.backSpeed_name = ttk.Label(self.Frame3)
+        self.backSpeed_name.place(relx=0.625, rely=0.64, height=16, width=140)
+        self.backSpeed_name.configure(text="Back Motor Speed")
         self.bspeed_bar = ttk.Progressbar(self.Frame3)
-        self.bspeed_bar.place(relx=0.71, rely=0.8, height=16, width=171)
+        self.bspeed_bar.place(relx=0.61, rely=0.72, height=16, width=171)
         self.bspeed_bar.configure(maximum=1998)
         self.bspeed_bar.configure(variable=self.backSpeed)
 
         self.Button1 = Button(top)
-        self.Button1.place(relx=0.59, rely=0.53, height=66, width=520)
+        self.Button1.place(relx=0.48, rely=0.54, height=66, width=655)
         self.Button1.configure(activebackground="#d9d9d9")
-        self.Button1.configure(command=self.screenshot)
+        self.Button1.configure(command=screenshot)
         self.Button1.configure(text='''Take Photo''')
         self.Button1.configure(width=520)
 
-
         self.updateData()
 
-
-    def screenshot(self):
-        self.amount = 0
-        AmountFile = open('Photos/amount', 'r')
-        x = AmountFile.readline().strip()
-        try:
-             self.amount = int(x)
-        except ValueError:
-             print("WHY??")
-        AmountFile.close()
-        camera.capture('Photos/' + 'snapshot' + str(self.amount) + '.jpg')
-        self.amount +=1
-        WriteAmount = open('Photos/amount', 'w')
-        WriteAmount.write("%d" % self.amount)
 
     def updateData(self):
         global leftSpeed, rightSpeed, frontSpeed, backSpeed
@@ -242,20 +258,14 @@ class New_Toplevel():
         self.rightSpeed.set(rightSpeed)
         self.frontSpeed.set(frontSpeed)
         self.backSpeed.set(backSpeed)
-        #self.isStarted = controller.started
-        #self.controllerScreenshot = controller.trianglePress
+        self.lspeed_bar.configure(variable=self.leftSpeed)
+        self.rspeed_bar.configure(variable=self.rightSpeed)
+        self.fspeed_bar.configure(variable=self.frontSpeed)
+        self.bspeed_bar.configure(variable=self.backSpeed)
+
 
         # updates the Labels every 100 ms
         self.Frame3.after(100, self.updateData)
-
-
-
-
-
-
-
-
-
 
 
 if __name__ == '__main__':
