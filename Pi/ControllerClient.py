@@ -7,8 +7,8 @@ import pigpio
 import picamera
 import threading
 
-HOST = '169.254.12.66'
-PORT = 5000
+HOST = '10.204.24.66'
+PORT = 5001
 BUFSIZE = 1024
 ADDRESS = (HOST, PORT)
 
@@ -32,6 +32,7 @@ downHatPressed = False	#Checks if the down hat has been pressed
 leftJoystickLeft = False	#Checks if the left joystick has been moved to the left
 leftJoystickRight = False	#Checks if the left joystick has been moved to the right
 turbo = 1		#Checks if the turns need to be moved turbo
+global trianglePress
 trianglePress = 0
 
 while True:
@@ -193,7 +194,7 @@ def get_honk_time():
         server_data = decode(server.recv(BUFSIZE), "ascii")
         if str(server_data)[0:4] == "Honk":
             honk_time = server_data[11:]
-            heard.write(float(honk_time))
+            heard.write(str(honk_time))
             heard.flush()
             print(honk_time)
         if os.path.getsize('sent.txt') > 1000000:  # clear file after it reaches 1 MB
@@ -206,8 +207,6 @@ horn_honked_thread.daemon = True
 horn_honked_thread.start()
 
 while True:
-    global trianglePress
-    trianglePress = 0
     button = decode(server.recv(BUFSIZE), "ascii")
     print(button)
     try:
