@@ -3,11 +3,11 @@ from codecs import *
 import os
 import pygame
 import time
-
+import sys
 import serial
 import threading
 
-#horn = serial.Serial('/dev/ttyACM0', 115200, timeout=.1)  # COM4 for windows, /dev/ttyAMC0
+horn = serial.Serial('/dev/ttyACM0', 115200, timeout=.1)  # COM4 for windows, /dev/ttyAMC0
 
 #we can clear the que with pygame.event.clear()
 #pygame.event.wait() stops the program until an event becomes available
@@ -32,29 +32,35 @@ lValue = 0
 rValue = 0
 
 #stuff needed for the server
-HOST = "169.254.208.126"
-PORT = 5000
+HOST = '10.204.24.66'
+PORT = 5001
 ADDRESS = (HOST, PORT)
 server = socket(AF_INET, SOCK_STREAM)
 server.bind(ADDRESS)
 server.listen(1)
 
 #keeps trying to connect to the joystick until it succeeds
+
+
+pygame.init()
+pygame.joystick.init()
 while True:
     try:
-        pygame.init()
         j = pygame.joystick.Joystick(0)
         j.init()
-        pygame.display.init()
-        screen = pygame.display.set_mode((1,1))
+        joysticks = pygame.joystick.get_count()
+        print(joysticks)
+        #if joysticks < 1:
+        #          raise ValueError
+        #else:
+        #    print("break")
         break
     except:
-        os.system("echo /home/password.txt | sudo -S pkill -9 ds4drv")
-        os.system("echo /home/password.txt | sudo -S ds4drv &")
-        print("Please connect Joystick.")
-        time.sleep(20)
-        pass
-#debug for server connection
+        sys.exit(1)
+pygame.display.init()
+screen = pygame.display.set_mode((1,1))
+
+
 print("Waiting for connection . . .")
 client, address = server.accept()
 print("connected from: ", address)
