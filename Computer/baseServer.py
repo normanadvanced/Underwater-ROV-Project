@@ -7,7 +7,7 @@ import sys
 import serial
 import threading
 
-horn = serial.Serial('/dev/ttyACM0', 115200, timeout=.1)  # COM4 for windows, /dev/ttyAMC0
+#horn = serial.Serial('/dev/ttyACM0', 115200, timeout=.1)  # COM4 for windows, /dev/ttyAMC0
 
 #we can clear the que with pygame.event.clear()
 #pygame.event.wait() stops the program until an event becomes available
@@ -32,7 +32,7 @@ lValue = 0
 rValue = 0
 
 #stuff needed for the server
-HOST = '10.204.24.66'
+HOST = 'NARROVCommandModule.local'
 PORT = 5001
 ADDRESS = (HOST, PORT)
 server = socket(AF_INET, SOCK_STREAM)
@@ -76,9 +76,9 @@ def create_horn():
             honk_time = "Honk time: " + str(time.time())
             client.send(bytes(honk_time, "ascii"))
 
-horn_thread = threading.Thread(target=create_horn())
-horn_thread.daemon = True
-horn_thread.start()
+#horn_thread = threading.Thread(target=create_horn())
+#horn_thread.daemon = True
+#horn_thread.start()
 
 while not done:
     for event in pygame.event.get():
