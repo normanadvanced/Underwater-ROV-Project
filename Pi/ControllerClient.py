@@ -7,7 +7,7 @@ import pigpio
 import picamera
 import threading
 
-HOST = '10.204.24.66'
+HOST = 'NARROVCommandModule.local'
 PORT = 5001
 BUFSIZE = 1024
 ADDRESS = (HOST, PORT)
@@ -120,7 +120,7 @@ def _noHorizontalHatOrJoystick():
 	global leftSpeed
 	global rightSpeed
 	global baseSpeed
-	print("No horizontal")
+	#print("No horizontal")
 	leftSpeed = baseSpeed
 	rightSpeed = baseSpeed
 
@@ -196,17 +196,20 @@ def get_honk_time():
             honk_time = server_data[11:]
             heard.write(str(honk_time))
             heard.flush()
-            print(honk_time)
+            #print(honk_time)
         if os.path.getsize('sent.txt') > 1000000:  # clear file after it reaches 1 MB
             f.seek(0)
             f.truncate()
 
 
-horn_honked_thread = threading.Thread(target=get_honk_time())
-horn_honked_thread.daemon = True
-horn_honked_thread.start()
+#horn_honked_thread = threading.Thread(target=get_honk_time())
+#horn_honked_thread.daemon = True
+print("honk")
+#horn_honked_thread.start()
+print("honk 2")
 
 while True:
+    #print("dabb")
     button = decode(server.recv(BUFSIZE), "ascii")
     print(button)
     try:
