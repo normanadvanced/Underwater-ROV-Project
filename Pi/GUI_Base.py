@@ -9,50 +9,15 @@ import sys
 import picamera
 import threading
 import time
-
-leftSpeed = rightSpeed = frontSpeed = backSpeed = trianglePress = 0
-
-camera = picamera.PiCamera()
-
-def screenshot():
-    global amount
-    amount = 0
-    AmountFile = open('Photos/amount', 'r')
-    x = AmountFile.readline().strip()
-    try:
-        amount = int(x)
-    except ValueError:
-        print("WHY??")
-    AmountFile.close()
-    camera.capture('Photos/' + 'snapshot' + str(amount) + '.jpg')
-    amount += 1
-    WriteAmount = open('Photos/amount', 'w')
-    WriteAmount.write("%d" % amount)
-
-cli = 0
+import os
+import SharedFunctions
+        
 def create_controller():
-    global cli
-    import ControllerClient as cli
-def gather_data():
-    print("This thing on???")
-    global leftSpeed, rightSpeed, frontSpeed, backSpeed, trianglePress
-    while True:
-        print("lol xD")
-        leftSpeed = cli.leftSpeed
-        rightSpeed = cli.rightSpeed
-        frontSpeed = cli.frontSpeed
-        backSpeed = cli.backSpeed
-        trianglePress = cli.trianglePress
-        if trianglePress == 1:
-            screenshot()
-            time.sleep(1)
+    os.system("echo raspberry | sudo -S python3 ControllerClient.py")
 
 cli_thread = threading.Thread(target=create_controller)
 cli_thread.daemon = True
 cli_thread.start()
-gatherControllerData = threading.Thread(target=gather_data)
-gatherControllerData.daemon = True
-gatherControllerData.start()
 
 try:
     from Tkinter import *
@@ -67,9 +32,6 @@ except ImportError:
     import tkinter.ttk as ttk
 
     py3 = True
-
-
-# import GUI_support
 
 
 def vp_start_gui():
@@ -101,7 +63,7 @@ def destroy_New_Toplevel():
 
 class New_Toplevel():
     def __init__(self, top=None):
-        global leftSpeed, rightSpeed, frontSpeed, backSpeed
+        self.leftSpeed = self.rightSpeed = self.frontSpeed = self.backSpeed = 0
         self.text_roll = self.text_yaw = self.text_pitch = self.text_temperature = self.text_depth = "0"
         self.leftSpeed = 0
         '''This class configures and populates the toplevel window.
@@ -134,7 +96,7 @@ class New_Toplevel():
         self.CameraFrame.configure(highlightbackground="#d9d9d9")
         self.CameraFrame.configure(highlightcolor="black")
         self.CameraFrame.configure(width=530)
-        camera.start_preview(fullscreen=False, window = (620, 2, 650, 450))
+        SharedFunctions.camera_start_preview()
 
         self.ModelFrame = Frame(top)
         self.ModelFrame.place(relx=0.01, rely=0.03, relheight=0.51, relwidth=0.39)
@@ -185,11 +147,11 @@ class New_Toplevel():
         self.YawLabel.configure(font="TkDefaultFont")
         self.YawLabel.configure(relief=FLAT)
         self.YawLabel.configure(text=self.text_yaw)
-
-        self.leftSpeed = IntVar()
-        self.rightSpeed = IntVar()
-        self.frontSpeed = IntVar()
-        self.backSpeed = IntVar()
+        
+        self.frontSpeedVar = DoubleVar()
+        self.leftSpeedVar = DoubleVar()
+        self.rightSpeedVar = DoubleVar()
+        self.backSpeedVar = DoubleVar()
 
         self.frontSpeed_name = ttk.Label(self.Frame3)
         self.frontSpeed_name.place(relx=0.625, rely=0.04, height=16, width=140)
@@ -197,7 +159,7 @@ class New_Toplevel():
         self.fspeed_bar = ttk.Progressbar(self.Frame3)
         self.fspeed_bar.place(relx=0.61, rely=0.12, height=16, width=171)
         self.fspeed_bar.configure(maximum=1998)
-        self.fspeed_bar.configure(variable=self.frontSpeed)
+        self.fspeed_bar.configure(variable=self.frontSpeedVar)
 
         self.leftSpeed_name = ttk.Label(self.Frame3)
         self.leftSpeed_name.place(relx=0.525, rely=0.34, height=16, width=140)
@@ -205,7 +167,7 @@ class New_Toplevel():
         self.lspeed_bar = ttk.Progressbar(self.Frame3)
         self.lspeed_bar.place(relx=0.51, rely=0.42, height=16, width=171)
         self.lspeed_bar.configure(maximum=1998)
-        self.lspeed_bar.configure(variable=self.leftSpeed)
+        self.lspeed_bar.configure(variable=self.leftSpeedVar)
 
         self.rightSpeed_name = ttk.Label(self.Frame3)
         self.rightSpeed_name.place(relx=0.695, rely=0.34, height=16, width=140)
@@ -213,7 +175,7 @@ class New_Toplevel():
         self.rspeed_bar = ttk.Progressbar(self.Frame3)
         self.rspeed_bar.place(relx=0.68, rely=0.42, height=16, width=171)
         self.rspeed_bar.configure(maximum=1998)
-        self.rspeed_bar.configure(variable=self.rightSpeed)
+        self.rspeed_bar.configure(variable=self.rightSpeedVar)
 
         self.backSpeed_name = ttk.Label(self.Frame3)
         self.backSpeed_name.place(relx=0.625, rely=0.64, height=16, width=140)
@@ -221,12 +183,12 @@ class New_Toplevel():
         self.bspeed_bar = ttk.Progressbar(self.Frame3)
         self.bspeed_bar.place(relx=0.61, rely=0.72, height=16, width=171)
         self.bspeed_bar.configure(maximum=1998)
-        self.bspeed_bar.configure(variable=self.backSpeed)
+        self.bspeed_bar.configure(variable=self.backSpeedVar)
 
         self.Button1 = Button(top)
         self.Button1.place(relx=0.48, rely=0.54, height=66, width=655)
         self.Button1.configure(activebackground="#d9d9d9")
-        self.Button1.configure(command=screenshot)
+        self.Button1.configure(command=SharedFunctions.screenshot)
         self.Button1.configure(text='''Take Photo''')
         self.Button1.configure(width=520)
 
@@ -234,7 +196,6 @@ class New_Toplevel():
 
 
     def updateData(self):
-        global leftSpeed, rightSpeed, frontSpeed, backSpeed
         # raw_data writes to data.txt for the gui and model to read
         f = open('data.txt', 'r')
         self.data = (f.readlines()[-1])[1:-2].split(',')
@@ -255,14 +216,23 @@ class New_Toplevel():
         self.text_yaw = ("Yaw: " + str(self.yaw))
         self.YawLabel.configure(text=self.text_yaw)
 
-        self.leftSpeed.set(leftSpeed)
-        self.rightSpeed.set(rightSpeed)
-        self.frontSpeed.set(frontSpeed)
-        self.backSpeed.set(backSpeed)
-        self.lspeed_bar.configure(variable=self.leftSpeed)
-        self.rspeed_bar.configure(variable=self.rightSpeed)
-        self.fspeed_bar.configure(variable=self.frontSpeed)
-        self.bspeed_bar.configure(variable=self.backSpeed)
+        cont_f = open('data.txt', 'r')
+        self.cont_data = (cont_f.readlines()[-1])[1:-2].split(',')
+        self.frontSpeed = float(self.cont_data[0])
+        self.backSpeed = float(self.cont_data[1])
+        self.leftSpeed = float(self.cont_data[2])
+        self.rightSpeed = float(self.cont_data[3])
+        cont_f.close()
+        
+        self.frontSpeedVar.set(self.frontSpeed)
+        self.leftSpeedVar.set(self.leftSpeed)
+        self.rightSpeedVar.set(self.rightSpeed)
+        self.backSpeedVar.set(self.backSpeed)
+        
+        self.lspeed_bar.configure(variable=self.leftSpeedVar)
+        self.rspeed_bar.configure(variable=self.rightSpeedVar)
+        self.fspeed_bar.configure(variable=self.frontSpeedVar)
+        self.bspeed_bar.configure(variable=self.backSpeedVar)
 
 
         # updates the Labels every 100 ms
