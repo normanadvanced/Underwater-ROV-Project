@@ -29,29 +29,30 @@ def screenshot():
     WriteAmount = open('Photos/amount', 'w')
     WriteAmount.write("%d" % amount)
 
-
-class Controller():
-    def __init__(self):
-        import ControllerClient as cli
-
+cli = 0
 def create_controller():
+    global cli
+    import ControllerClient as cli
+def gather_data():
+    print("This thing on???")
     global leftSpeed, rightSpeed, frontSpeed, backSpeed, trianglePress
-    controller = Controller()
     while True:
-        leftSpeed = controller.leftSpeed
-        rightSpeed = controller.rightSpeed
-        frontSpeed = controller.frontSpeed
-        backSpeed = controller.backSpeed
-        trianglePress = controller.trianglePress
+        print("lol xD")
+        leftSpeed = cli.leftSpeed
+        rightSpeed = cli.rightSpeed
+        frontSpeed = cli.frontSpeed
+        backSpeed = cli.backSpeed
+        trianglePress = cli.trianglePress
         if trianglePress == 1:
             screenshot()
             time.sleep(1)
 
-
-
 cli_thread = threading.Thread(target=create_controller)
 cli_thread.daemon = True
 cli_thread.start()
+gatherControllerData = threading.Thread(target=gather_data)
+gatherControllerData.daemon = True
+gatherControllerData.start()
 
 try:
     from Tkinter import *
