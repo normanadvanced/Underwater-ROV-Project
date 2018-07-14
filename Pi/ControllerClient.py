@@ -6,6 +6,7 @@ from codecs import decode
 import pigpio
 import picamera
 import threading
+import SharedFunctions
 
 HOST = 'NARROVCommandModule.local'
 PORT = 5001
@@ -44,9 +45,7 @@ while True:
         pass
 
 def _triangle():		#please look at Chris/Pranav. Not nessecery for movement
-    global trianglePress
-    trianglePress = 1
-
+    SharedFunctions.screenshot()
 def _square():
     '''toggle the GUI'''
     print("square commands here")
@@ -166,6 +165,7 @@ def _leftJoystickLeft():
 	print("the left joystick was moved to the left")
 	if baseSpeed > 1488:
 		leftSpeed = baseSpeed - 200 * turbo
+                print("LEFTSPEED" + str(leftSpeed)
 	if baseSpeed < 1488:
 		rightSpeed = baseSpeed + 200 * turbo
 
@@ -201,17 +201,27 @@ def get_honk_time():
             f.seek(0)
             f.truncate()
 
-
+#setVariables = threading.Thread(target=SharedFunctions.setVariables, args=(leftSpeed, rightSpeed))
 #horn_honked_thread = threading.Thread(target=get_honk_time())
 #horn_honked_thread.daemon = True
 print("honk")
 #horn_honked_thread.start()
 print("honk 2")
 
+
+cont_data = open('controller_data.txt', 'a')
+cont_data.seek(0)   # clears file
+cont_data.truncate()
 while True:
-    #print("dabb")
     button = decode(server.recv(BUFSIZE), "ascii")
     print(button)
+
+    cont_data.write(str([frontSpeed, backSpeed, leftSpeed, rightSpeed]) + '\n')
+    cont_data.flush()
+    if os.path.getsize('controller_data.txt') > 1000000: # clears if the file is over 1 MB
+        cont_data.seek(0)
+        cont_data.truncate()
+
     try:
         analogButton = float(button)
         analogButton = round(analogButton, 4)
