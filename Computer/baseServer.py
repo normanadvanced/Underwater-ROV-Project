@@ -12,7 +12,7 @@ import threading
 #os.system("echo '$(<~/password.txt)' | sudo -S python3 hornServer.py &")
 
 #stuff needed for the server
-HOST = 'NARROVCommandModule.local'
+HOST = '169.254.208.126'
 PORT = 5007
 ADDRESS = (HOST, PORT)
 server = socket(AF_INET, SOCK_STREAM)
@@ -139,9 +139,9 @@ while not done:
                 client.send(bytes("no horizontal hat pressed", "ascii"))
                 print("", end="")
             else:
-                client.send(bytes("no verticle hat pressed", "ascii"))
+                client.send(bytes("no vertical hat pressed", "ascii"))
                 client.send(bytes("no horizontal hat pressed", "ascii"))
-                print("this actually did go off??!")
+                print("no hat")
         if timeCenterPressed + 5 < time.time() and timeCenterPressed != 0 and not centerSent:
             print(time.time() - timeCenterPressed)
             timeCenterPressed = 0

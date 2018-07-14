@@ -14,12 +14,12 @@ horn = serial.Serial('/dev/ttyACM0', 115200, timeout=.1)  # COM4 for windows, /d
 
 
 #stuff needed for the server
-HOST = 'NARROVCommandModule.local'
-PORT = 5006
+HOST = '169.254.208.126'
+PORT = 5008
 ADDRESS = (HOST, PORT)
 server = socket(AF_INET, SOCK_STREAM)
 server.bind(ADDRESS)
-server.listen(1)
+server.listen(5)
 
 
 print("Waiting for connection horn . . .")
