@@ -9,16 +9,16 @@ import threading
 
 #os.system("printf 'raspberry \n' | sudo -S python3 HornClient.py &")
 
-HOST = 'NARROVCommandModule.local'
-PORT = 5007
+HOST = '169.254.208.126'
+PORT = 5009
 BUFSIZE = 1024
 ADDRESS = (HOST, PORT)
 
 pi = pigpio.pi()
-ESCRIGHT = 5
-ESCLEFT = 21
-ESCBACK = 13 #unknown so far
-ESCFRONT = 27 #also still known so far
+ESCRIGHT = 13
+ESCLEFT = 27
+ESCBACK = 2
+ESCFRONT = 5
 
 horizontalSpeed = 1488    #the speed determined by r1 and l1
 verticalSpeed = 1488
@@ -63,38 +63,41 @@ def _circle():
     if not started:
         #speed = 1488
         started = True
-        #pi.set_servo_pulsewidth(ESCRIGHT, speed)
-        #pi.set_servo_pulsewidth(ESCLEFT, speed)
         print("Started")
     elif started:
         started = False
-        #speed = 1488
         print("Stopped")
         
         
     
 def _r1(): #Increases horizontal speed
-    global horizontalSpeed
+    global horizontalSpeed,leftSpeed,rightSpeed
     if started == True:
         if horizontalSpeed < 1990:
             horizontalSpeed += 10
         else:
             horizontalSpeed = 1998   
         print("base: ", horizontalSpeed)
+        leftSpeed = horizontalSpeed
+        rightSpeed = horizontalSpeed
 
 def _l1(): 
     '''Decreases horizontal speed'''
-    global horizontalSpeed
+    global horizontalSpeed, leftSpeed, rightSpeed
     if started == True:
         if horizontalSpeed > 708:
             horizontalSpeed -= 10
         else:
             horizontalSpeed = 708
         print("base: ", horizontalSpeed)
+        leftSpeed = horizontalSpeed
+        rightSpeed = horizontalSpeed
+        print(leftSpeed)
+        print(rightSpeed)
     
 def _r2(magnitude): 
     '''Goes up'''
-    global verticalSpeed
+    global verticalSpeed, frontSpeed, backSpeed
     if started == True:
         verticalSpeed = 1488 + 255 * magnitude
         frontSpeed = verticalSpeed
@@ -102,6 +105,7 @@ def _r2(magnitude):
     
 def _l2(magnitude): 
     '''Goes down'''
+    global verticalSpeed, frontSpeed, backSpeed
     if started == True:
         verticalSpeed = 1488 - 255 * magnitude
         frontSpeed = verticalSpeed
@@ -111,16 +115,17 @@ def _leftHat():
     '''makes the robot do a pivot turn to the left'''
     global leftSpeed
     global rightSpeed
- 
-    leftSpeed = 1388
-    rightSpeed = 1588
+    if started == True:
+        leftSpeed = 1388
+        rightSpeed = 1588
 
 def _rightHat():
     '''makes the robot do a pivot turn to the right'''
     global rightSpeed
     global leftSpeed
-    leftSpeed = 1588
-    rightSpeed = 1388
+    if started == True:
+        leftSpeed = 1588
+        rightSpeed = 1388
 
 def _noHorizontalHatOrJoystick():
     '''Makes the robot drive straight again'''
@@ -135,15 +140,17 @@ def _upHat():
     '''makes the robot pitch up'''
     global backSpeed
     global frontSpeed
-    backSpeed = 1438
-    frontSpeed = 1538
+    if started == True:
+        backSpeed = 1438
+        frontSpeed = 1538
 
 def _downHat():
     '''makes the robot pitch down'''
     global backSpeed
     global frontSpeed
-    backSpeed = 1538
-    frontSpeed = 1438
+    if started == True:
+        backSpeed = 1538
+        frontSpeed = 1438
 
 def _noVerticalHat():
     '''makes the robot stop pitching'''
@@ -198,15 +205,15 @@ cont_data.seek(0)   # clears file
 cont_data.truncate()
 
 while True:
+    #global rightHatPressed, leftHatPressed, upHatPressed, downHatPressed
+    #rightHatPressed = False
+    #leftHatPressed = False
+    #upHatPressed = False
+    #downHatPressed = False
     button = decode(server.recv(BUFSIZE), "ascii")
     print(button)
 
-    cont_data.write(str([frontSpeed, backSpeed, leftSpeed, rightSpeed, trianglePress]) + '\n')
-    cont_data.flush()
-    if os.path.getsize('controller_data.txt') > 1000000: # clears if the file is over 1 MB
-        cont_data.seek(0)
-        cont_data.truncate()
-
+    
     try:
         analogButton = float(button)
         analogButton = round(analogButton, 4)
@@ -286,14 +293,19 @@ while True:
 
         if rightHatPressed:
             _rightHat()
+            print("_rightHat()")
         elif leftHatPressed:
             _leftHat()
+            print("_leftHat()")
         elif leftJoystickRight:
+            print("_leftJoystickRight()")
             _leftJoystickRight()
         elif leftJoystickLeft:
             _leftJoystickLeft()
+            print("(_leftJoystickLeft()")
         else:
             _noHorizontalHatOrJoystick()
+            print("noHorizontalHatOrJoystick")
 
         if started:
             pi.set_servo_pulsewidth(ESCRIGHT, rightSpeed)
@@ -305,3 +317,9 @@ while True:
             pi.set_servo_pulsewidth(ESCLEFT, 1488)
             pi.set_servo_pulsewidth(ESCFRONT,1488)
             pi.set_servo_pulsewidth(ESCBACK, 1488)
+        
+        cont_data.write(str([frontSpeed, backSpeed, leftSpeed, rightSpeed, trianglePress]) + '\n')
+        cont_data.flush()
+        if os.path.getsize('controller_data.txt') > 1000000: # clears if the file is over 1 MB
+            cont_data.seek(0)
+            cont_data.truncate()
