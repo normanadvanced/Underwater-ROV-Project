@@ -14,7 +14,7 @@ horn = serial.Serial('/dev/ttyACM0', 115200, timeout=.1)  # COM4 for windows, /d
 
 
 #stuff needed for the server
-HOST = '169.254.208.126'
+HOST = os.popen("echo $(getent hosts NARROVCommandModule.local |cut -f1 -d ' ')").readline()
 PORT = 5008
 ADDRESS = (HOST, PORT)
 server = socket(AF_INET, SOCK_STREAM)
