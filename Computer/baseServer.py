@@ -12,8 +12,9 @@ import threading
 #os.system("echo '$(<~/password.txt)' | sudo -S python3 hornServer.py &")
 
 #stuff needed for the server
-HOST = '169.254.208.126'
-PORT = 5007
+HOST = str(os.popen("echo $(getent hosts NARROVCommandModule.local |cut -f1 -d ' ')").readline())
+print("Host is " + HOST) 
+PORT = 5009
 ADDRESS = (HOST, PORT)
 server = socket(AF_INET, SOCK_STREAM)
 server.bind(ADDRESS)
@@ -51,11 +52,12 @@ print("ControllerCLi connected from: ", address)
 #all of the analog buttons on the controller
 LJOYY_AXIS = 1
 LJOYX_AXIS = 0
-RJOYY_AXIS = 5
-RJOYX_AXIS = 2
-R2_AXIS = 4
-L2_AXIS = 3
+RJOYY_AXIS = 4
+RJOYX_AXIS = 3
+R2_AXIS = 2
+L2_AXIS = 5
 
+lJOY_MOVED = False
 l2Pressed = False
 r2Pressed = False
 centerSent = False
@@ -69,19 +71,20 @@ rValue = 0
 lastRValue=0
 lastLValue=0
 done = False
+
 while not done:
-   for event in pygame.event.get():
+    for event in pygame.event.get():
         if event.type == pygame.JOYBUTTONDOWN:
             # print(event.dict, event.joy, event.button, "pressed")
             if event.button == 1:
                 client.send(bytes("circle", "ascii"))
             elif event.button == 2:
                 client.send(bytes("triangle", "ascii"))
-            elif event.button == 3:
-                pass # we don't use square
+            #elif event.button == 3:
+                #pass # we don't use square
                 #client.send(bytes("square", "ascii"))
-            elif event.button == 0:
-                pass # we don't use x
+            #elif event.button == 0:
+                #pass # we don't use x
                 #client.send(bytes("x", "ascii"))
             elif event.button == 4:
                 client.send(bytes("l1", "ascii"))
@@ -101,14 +104,23 @@ while not done:
             elif event.button == 11:
                 client.send(bytes("leftJoystickPressed", "ascii"))
         elif event.type == pygame.JOYAXISMOTION:
-            if event.axis == 0:
+            if event.axis == LJOYX_AXIS:
                 # print(event.value)
                 if event.value > .6:
-                    client.send(bytes("right", "ascii"))
-                elif event.value < -.6:
-                    client.send(bytes("left", "ascii"))
+                    if lJOY_MOVED == False:
+                        client.send(bytes("right", "ascii"))
+                        lJOY_MOVED = True
+                elif event.value < -.6 :
+                    if lJOY_MOVED == False:
+                        client.send(bytes("left", "ascii"))
+                        lJOY_MOVED = True
                 else:
-                    client.send(bytes("not left or right", "ascii"))
+                    if lJOY_MOVED == True:
+                        client.send(bytes("not left or right", "ascii"))
+                        lJOY_MOVED = False
+                    if lJOY_MOVED == False:
+                        pass
+                    
         elif event.type == pygame.JOYBUTTONUP:
             if event.button == 10:
                 timeCenterPressed = 0
@@ -132,26 +144,26 @@ while not done:
 
             elif event.value[1] == 1:
                 client.send(bytes("upHatPressed", "ascii"))
-                client.send(bytes("no horizontal hat pressed", "ascii"))
+               # client.send(bytes("no horizontal hat pressed", "ascii"))
                 print("", end="")
             elif event.value[1] == -1:
                 client.send(bytes("downHatPressed", "ascii"))
-                client.send(bytes("no horizontal hat pressed", "ascii"))
+               # client.send(bytes("no horizontal hat pressed", "ascii"))
                 print("", end="")
             else:
-                client.send(bytes("no vertical hat pressed", "ascii"))
-                client.send(bytes("no horizontal hat pressed", "ascii"))
+                #client.send(bytes("no vertical hat pressed", "ascii"))
+                client.send(bytes("no hat pressed", "ascii"))
                 print("no hat")
-        if timeCenterPressed + 5 < time.time() and timeCenterPressed != 0 and not centerSent:
-            print(time.time() - timeCenterPressed)
-            timeCenterPressed = 0
-            client.send(bytes("center", "ascii"))
-            done = True
-            centerSent = True
+    if timeCenterPressed + 5 < time.time() and timeCenterPressed != 0 and not centerSent:
+        print(time.time() - timeCenterPressed)
+        timeCenterPressed = 0
+        client.send(bytes("center", "ascii"))
+        done = True
+        centerSent = True
 
-        if r2Pressed == True:
-            lastRValue = rValue
-            rValue = j.get_axis(R2_AXIS)
+    if r2Pressed == True:
+        lastRValue = rValue
+        rValue = j.get_axis(R2_AXIS)
         if rValue > -1 and rValue <= 1 or lastRValue == -1:
             print(rValue)  # someone should really figure out why this is needed
             print("", end="")
@@ -162,9 +174,9 @@ while not done:
         if lastRValue == -1 or lastRValue == -10 and rValue == -1:
             rValue = -10
 
-        if l2Pressed == True:
-            lastLValue = lValue
-            lValue = j.get_axis(L2_AXIS)
+    if l2Pressed == True:
+        lastLValue = lValue
+        lValue = j.get_axis(L2_AXIS)
         if lValue > -1 and lValue <= 1 or lastLValue == -1:
             print(lValue)
             print("", end="")
