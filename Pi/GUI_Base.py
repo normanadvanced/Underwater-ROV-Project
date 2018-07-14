@@ -6,18 +6,18 @@
 #    Jun 17, 2018 04:29:46 PM
 
 import sys
-import picamera
+#import picamera
 import threading
 import time
 import os
 import SharedFunctions
         
 def create_controller():
-    os.system("echo raspberry | sudo -S python3 ControllerClient.py")
+    os.system("printf 'raspberry\n' | sudo -S python3 HornClient.py")
 
-cli_thread = threading.Thread(target=create_controller)
-cli_thread.daemon = True
-cli_thread.start()
+#cli_thread = threading.Thread(target=create_controller)
+#cli_thread.daemon = True
+#cli_thread.start()
 
 try:
     from Tkinter import *
@@ -65,7 +65,7 @@ class New_Toplevel():
     def __init__(self, top=None):
         self.leftSpeed = self.rightSpeed = self.frontSpeed = self.backSpeed = 0
         self.text_roll = self.text_yaw = self.text_pitch = self.text_temperature = self.text_depth = "0"
-        self.leftSpeed = 0
+        self.triangle = 0
         '''This class configures and populates the toplevel window.
            top is the toplevel containing window.'''
         _bgcolor = '#d9d9d9'  # X11 color: 'gray85'
@@ -147,43 +147,54 @@ class New_Toplevel():
         self.YawLabel.configure(font="TkDefaultFont")
         self.YawLabel.configure(relief=FLAT)
         self.YawLabel.configure(text=self.text_yaw)
+
+        self.TemperatureLabel = ttk.Label(self.Frame3)
+        self.TemperatureLabel.place(relx=0.31, rely=0.24, height=16, width=200)
+        self.TemperatureLabel.configure(background="#d9d9d9")
+        self.TemperatureLabel.configure(foreground="#000000")
+        self.TemperatureLabel.configure(font="TkDefaultFont")
+        self.TemperatureLabel.configure(relief=FLAT)
+        self.TemperatureLabel.configure(text=self.text_temperature)
         
-        self.frontSpeedVar = DoubleVar()
-        self.leftSpeedVar = DoubleVar()
-        self.rightSpeedVar = DoubleVar()
-        self.backSpeedVar = DoubleVar()
+        self.DepthLabel = ttk.Label(self.Frame3)
+        self.DepthLabel.place(relx=0.31, rely=0.34, height=16, width=170)
+        self.DepthLabel.configure(background="#d9d9d9")
+        self.DepthLabel.configure(foreground="#000000")
+        self.DepthLabel.configure(font="TkDefaultFont")
+        self.DepthLabel.configure(relief=FLAT)
+        self.DepthLabel.configure(text=self.text_depth)
 
         self.frontSpeed_name = ttk.Label(self.Frame3)
         self.frontSpeed_name.place(relx=0.625, rely=0.04, height=16, width=140)
         self.frontSpeed_name.configure(text="Front Motor Speed")
-        self.fspeed_bar = ttk.Progressbar(self.Frame3)
+        self.fspeed_bar = ttk.Progressbar(self.Frame3, mode='determinate')
         self.fspeed_bar.place(relx=0.61, rely=0.12, height=16, width=171)
         self.fspeed_bar.configure(maximum=1998)
-        self.fspeed_bar.configure(variable=self.frontSpeedVar)
+        self.fspeed_bar.configure(value=self.frontSpeed)
 
         self.leftSpeed_name = ttk.Label(self.Frame3)
         self.leftSpeed_name.place(relx=0.525, rely=0.34, height=16, width=140)
         self.leftSpeed_name.configure(text="Left Motor Speed")
-        self.lspeed_bar = ttk.Progressbar(self.Frame3)
+        self.lspeed_bar = ttk.Progressbar(self.Frame3, mode='determinate')
         self.lspeed_bar.place(relx=0.51, rely=0.42, height=16, width=171)
         self.lspeed_bar.configure(maximum=1998)
-        self.lspeed_bar.configure(variable=self.leftSpeedVar)
+        self.lspeed_bar.configure(value=self.leftSpeed)
 
         self.rightSpeed_name = ttk.Label(self.Frame3)
         self.rightSpeed_name.place(relx=0.695, rely=0.34, height=16, width=140)
         self.rightSpeed_name.configure(text="Right Motor Speed")
-        self.rspeed_bar = ttk.Progressbar(self.Frame3)
+        self.rspeed_bar = ttk.Progressbar(self.Frame3, mode='determinate')
         self.rspeed_bar.place(relx=0.68, rely=0.42, height=16, width=171)
         self.rspeed_bar.configure(maximum=1998)
-        self.rspeed_bar.configure(variable=self.rightSpeedVar)
+        self.rspeed_bar.configure(value=self.rightSpeed)
 
         self.backSpeed_name = ttk.Label(self.Frame3)
         self.backSpeed_name.place(relx=0.625, rely=0.64, height=16, width=140)
         self.backSpeed_name.configure(text="Back Motor Speed")
-        self.bspeed_bar = ttk.Progressbar(self.Frame3)
+        self.bspeed_bar = ttk.Progressbar(self.Frame3, mode='determinate')
         self.bspeed_bar.place(relx=0.61, rely=0.72, height=16, width=171)
         self.bspeed_bar.configure(maximum=1998)
-        self.bspeed_bar.configure(variable=self.backSpeedVar)
+        self.bspeed_bar.configure(value=self.backSpeed)
 
         self.Button1 = Button(top)
         self.Button1.place(relx=0.48, rely=0.54, height=66, width=655)
@@ -197,15 +208,18 @@ class New_Toplevel():
 
     def updateData(self):
         # raw_data writes to data.txt for the gui and model to read
-        f = open('data.txt', 'r')
-        self.data = (f.readlines()[-1])[1:-2].split(',')
-        # print(data[0])
-        self.pitch = float(self.data[0])
-        self.roll = float(self.data[1])
-        self.yaw = float(self.data[2])
-        self.temperature = float(self.data[3])
-        self.depth = float(self.data[4])
-        f.close()
+        try:
+            f = open('data.txt', 'r')
+            self.data = (f.readlines()[-1])[1:-2].split(',')
+            # print(data[0])
+            self.pitch = float(self.data[0])
+            self.roll = float(self.data[1])
+            self.yaw = float(self.data[2])
+            self.temperature = float(self.data[3])
+            self.depth = float(self.data[4])
+            f.close()
+        except:
+            pass
 
         self.text_pitch = "Pitch: " + str(self.pitch)
         self.PitchLabel.configure(text=self.text_pitch)
@@ -215,25 +229,32 @@ class New_Toplevel():
 
         self.text_yaw = ("Yaw: " + str(self.yaw))
         self.YawLabel.configure(text=self.text_yaw)
-
-        cont_f = open('data.txt', 'r')
-        self.cont_data = (cont_f.readlines()[-1])[1:-2].split(',')
-        self.frontSpeed = float(self.cont_data[0])
-        self.backSpeed = float(self.cont_data[1])
-        self.leftSpeed = float(self.cont_data[2])
-        self.rightSpeed = float(self.cont_data[3])
-        cont_f.close()
         
-        self.frontSpeedVar.set(self.frontSpeed)
-        self.leftSpeedVar.set(self.leftSpeed)
-        self.rightSpeedVar.set(self.rightSpeed)
-        self.backSpeedVar.set(self.backSpeed)
+        self.text_temperature = ("Temperature: " + str(self.temperature))
+        self.TemperatureLabel.configure(text=self.text_temperature)
         
-        self.lspeed_bar.configure(variable=self.leftSpeedVar)
-        self.rspeed_bar.configure(variable=self.rightSpeedVar)
-        self.fspeed_bar.configure(variable=self.frontSpeedVar)
-        self.bspeed_bar.configure(variable=self.backSpeedVar)
+        self.text_depth = ("Depth: " + str(self.depth))
+        self.DepthLabel.configure(text=self.text_depth)
 
+        try:
+            cont_f = open('controller_data.txt', 'r')
+            self.cont_data = (cont_f.readlines()[-1])[1:-2].split(',')
+            self.frontSpeed = float(self.cont_data[0])
+            self.backSpeed = float(self.cont_data[1])
+            self.leftSpeed = float(self.cont_data[2])
+            self.rightSpeed = float(self.cont_data[3])
+            self.triangle = float(self.cont_data[4])
+            cont_f.close()
+        except:
+            pass
+
+        if self.triangle == 1:
+            SharedFunctions.screenshot()
+        self.lspeed_bar.configure(value=self.leftSpeed)
+        self.rspeed_bar.configure(value=self.rightSpeed)
+        self.fspeed_bar.configure(value=self.frontSpeed)
+        self.bspeed_bar.configure(value=self.backSpeed)
+        
 
         # updates the Labels every 100 ms
         self.Frame3.after(100, self.updateData)
