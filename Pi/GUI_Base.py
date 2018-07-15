@@ -6,11 +6,11 @@
 #    Jun 17, 2018 04:29:46 PM
 
 import sys
-#import picamera
+import picamera
 import threading
 import time
 import os
-import SharedFunctions
+#import SharedFunctions
         
 def create_controller():
     os.system("printf 'raspberry\n' | sudo -S python3 HornClient.py")
@@ -65,6 +65,8 @@ class New_Toplevel():
     def __init__(self, top=None):
         self.leftSpeed = self.rightSpeed = self.frontSpeed = self.backSpeed = 0
         self.text_roll = self.text_yaw = self.text_pitch = self.text_temperature = self.text_depth = "0"
+        self.text_horn = "0"
+        self.heard_time = self.sent_time = 0
         self.triangle = 0
         '''This class configures and populates the toplevel window.
            top is the toplevel containing window.'''
@@ -96,7 +98,8 @@ class New_Toplevel():
         self.CameraFrame.configure(highlightbackground="#d9d9d9")
         self.CameraFrame.configure(highlightcolor="black")
         self.CameraFrame.configure(width=530)
-        SharedFunctions.camera_start_preview()
+        self.camera = picamera.PiCamera()
+        self.camera.start_preview(fullscreen=False, window = (620, 2, 650, 450))
 
         self.ModelFrame = Frame(top)
         self.ModelFrame.place(relx=0.01, rely=0.03, relheight=0.51, relwidth=0.39)
@@ -116,13 +119,13 @@ class New_Toplevel():
         self.Frame3.configure(highlightcolor="black")
         self.Frame3.configure(width=1305)
 
-        self.TLabel1 = ttk.Label(self.Frame3)
-        self.TLabel1.place(relx=0.01, rely=0.05, height=16, width=219)
-        self.TLabel1.configure(background="#d9d9d9")
-        self.TLabel1.configure(foreground="#000000")
-        self.TLabel1.configure(font="TkDefaultFont")
-        self.TLabel1.configure(relief=FLAT)
-        self.TLabel1.configure(text='''Displacement (from Horn):''')
+        self.HornLabel = ttk.Label(self.Frame3)
+        self.HornLabel.place(relx=0.01, rely=0.05, height=16, width=219)
+        self.HornLabel.configure(background="#d9d9d9")
+        self.HornLabel.configure(foreground="#000000")
+        self.HornLabel.configure(font="TkDefaultFont")
+        self.HornLabel.configure(relief=FLAT)
+        self.HornLabel.configure(text=self.text_horn)
 
         self.RollLabel = ttk.Label(self.Frame3)
         self.RollLabel.place(relx=0.01, rely=0.24, height=16, width=200)
@@ -199,7 +202,7 @@ class New_Toplevel():
         self.Button1 = Button(top)
         self.Button1.place(relx=0.48, rely=0.54, height=66, width=655)
         self.Button1.configure(activebackground="#d9d9d9")
-        self.Button1.configure(command=SharedFunctions.screenshot)
+        self.Button1.configure(command=self.screenshot)
         self.Button1.configure(text='''Take Photo''')
         self.Button1.configure(width=520)
 
@@ -208,6 +211,14 @@ class New_Toplevel():
 
     def updateData(self):
         # raw_data writes to data.txt for the gui and model to read
+        
+        try:
+            sent = open('data.txt', 'r')
+            self.sent_time = float(sent.readlines()[-1])
+            sent.close()
+        except:
+            pass
+
         try:
             f = open('data.txt', 'r')
             self.data = (f.readlines()[-1])[1:-2].split(',')
@@ -217,6 +228,7 @@ class New_Toplevel():
             self.yaw = float(self.data[2])
             self.temperature = float(self.data[3])
             self.depth = float(self.data[4])
+            self.heard_time = float(self.data[5])
             f.close()
         except:
             pass
@@ -235,6 +247,11 @@ class New_Toplevel():
         
         self.text_depth = ("Depth: " + str(self.depth))
         self.DepthLabel.configure(text=self.text_depth)
+        
+        # only updates when the sent and heard time correspond to the same ping 
+        if self.heard_time - self.sent_time < 7 and self.heard_time - self.sent_time > 0:
+            self.text_horn = ("Time (from Horn): " + str(self.heard_time - self.sent_time))
+            self.HornLabel.configure(text=self.text_horn)
 
         try:
             cont_f = open('controller_data.txt', 'r')
@@ -249,7 +266,7 @@ class New_Toplevel():
             pass
 
         if self.triangle == 1:
-            SharedFunctions.screenshot()
+            self.screenshot()
         self.lspeed_bar.configure(value=self.leftSpeed)
         self.rspeed_bar.configure(value=self.rightSpeed)
         self.fspeed_bar.configure(value=self.frontSpeed)
@@ -258,6 +275,20 @@ class New_Toplevel():
 
         # updates the Labels every 100 ms
         self.Frame3.after(100, self.updateData)
+        
+    def screenshot(self):
+        self.amount = 0
+        AmountFile = open('Photos/amount', 'r')
+        self.x = AmountFile.readline().strip()
+        try:
+            self.amount = int(self.x)
+        except ValueError:
+            print("WHY??")
+        AmountFile.close()
+        self.camera.capture('Photos/' + 'snapshot' + str(self.amount) + '.jpg')
+        self.amount += 1
+        WriteAmount = open('Photos/amount', 'w')
+        WriteAmount.write("%d" % self.amount)
 
 
 if __name__ == '__main__':

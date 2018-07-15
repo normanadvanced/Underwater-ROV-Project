@@ -5,7 +5,7 @@ from codecs import decode
 
 
 HOST = os.popen("getent hosts NARROVCommandModule.local |cut -f1 -d ' '").readline()
-PORT = 5008
+PORT = 5003
 BUFSIZE = 1024
 ADDRESS = (HOST, PORT)
 
@@ -36,7 +36,7 @@ def get_honk_time():
         server_data = decode(server.recv(BUFSIZE), "ascii")
         if str(server_data)[0:4] == "Honk":
             honk_time = server_data[11:]
-            heard.write(str(honk_time)+'\n')
+            heard.write(str(honk_time)[:15]+'\n')
             heard.flush()
             #print(honk_time)
         if os.path.getsize('sent.txt') > 1000000:  # clear file after it reaches 1 MB

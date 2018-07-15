@@ -10,14 +10,16 @@ import threading
 #os.system("printf 'raspberry \n' | sudo -S python3 HornClient.py &")
 
 HOST = os.popen("echo $(getent hosts NARROVCommandModule.local |cut -f1 -d ' ')").readline()
-PORT = 5009
+print(HOST)
+#HOST='169.254.208.126'
+PORT = 5006
 BUFSIZE = 1024
 ADDRESS = (HOST, PORT)
 
 pi = pigpio.pi()
 ESCRIGHT = 13
-ESCLEFT = 27
-ESCBACK = 21
+ESCLEFT = 21
+ESCBACK = 27
 ESCFRONT = 5
 
 horizontalSpeed = 1488    #the speed determined by r1 and l1
@@ -36,7 +38,10 @@ upHatPressed = False    #Checks if the up hat has been pressed
 downHatPressed = False    #Checks if the down hat has been pressed
 leftJoystickLeft = False    #Checks if the left joystick has been moved to the left
 leftJoystickRight = False    #Checks if the left joystick has been moved to the right
+rightJoystickUp = False    #Checks if the left joystick has been moved to the left
+rightJoystickDown = False    #Checks if the left joystick has been moved to the right
 turbo = 1        #Checks if the turns need to be moved turbo
+turboVert = 1   #vertical turbo
 
 trianglePress = 0
 
@@ -111,7 +116,7 @@ def _l2(magnitude):
     '''Goes down'''
     global verticalSpeed, frontSpeed, backSpeed
     if started == True:
-        verticalSpeed = 1488 - 255 * magnitude
+        verticalSpeed = 1488 + 390 * magnitude
         frontSpeed = verticalSpeed
         backSpeed = verticalSpeed
 
@@ -139,6 +144,14 @@ def _noHorizontalHatOrJoystick():
     
     leftSpeed = horizontalSpeed
     rightSpeed = horizontalSpeed
+def _noVerticalHatOrJoystick():
+    '''Makes the robot drive straight again'''
+    global frontSpeed
+    global backSpeed
+    global verticalSpeed
+    
+    frontSpeed = verticalSpeed
+    backSpeed = verticalSpeed
 
 def _upHat():
     '''makes the robot pitch up'''
@@ -187,6 +200,20 @@ def _leftJoystickLeft():
     print("LEFTSPEED" + str(leftSpeed))
     if horizontalSpeed < 1488:
         rightSpeed = horizontalSpeed + 200 * turbo
+        
+def _rightJoystickDown():
+    '''makes the robot move down'''
+    global frontSpeed, backSpeed, verticalSpeed
+    print("the  joystick was moved down")
+    frontSpeed = 1469 - 50 * turboVert
+    backSpeed = 1100 - 200 * turboVert
+
+def _rightJoystickUp():
+    '''makes the robot move up'''
+    global frontSpeed, backSpeed, verticalSpeed
+    print("the  joystick was moved up")
+    frontSpeed = 1509 + 200 * turboVert
+    backSpeed = 1509 + 200 * turboVert
 
 def _center():
     '''makes the robot shoot up at full speed'''
@@ -218,9 +245,12 @@ while True:
         analogButton = round(analogButton, 4)
         if analogButton < 2.5 and analogButton > -2.5:
             if analogButton < 0:
-                _l2(analogButton)
+                #_l2(analogButton)
+                pass
             else:
-                _r2(analogButton)
+                #_r2(analogButton)
+                pass
+           
 
     except ValueError:
         if button == "circle":
@@ -274,10 +304,21 @@ while True:
         elif button == "not left or right":
             leftJoystickRight = False
             leftJoystickLeft = False
+        elif button == "up":
+            rightJoystickUp = True
+        elif button == "down":
+            rightJoystickDown = True
+        elif button == "not down or up":
+            rightJoystickUp = False
+            rightJoystickDown = False
         elif button == "leftJoystickPressed":
             turbo = 2
         elif button == "leftJoystickReleased":
             turbo = 1
+        elif button == "rightJoystickPressed":
+            turboVert = 2
+        elif button == "rightJoystickReleased":
+            turboVert = 1
             
         elif button == "rightHatPressed":
             rightHatPressed = True
@@ -308,26 +349,32 @@ while True:
         elif leftJoystickLeft:
             _leftJoystickLeft()
             print("(_leftJoystickLeft()")
+        elif rightJoystickUp:
+            print("_rightJoystickUp()")
+            _rightJoystickUp()
+        elif rightJoystickDown:
+            _rightJoystickDown()           
         else:
             _noHorizontalHatOrJoystick()
+            _noVerticalHatOrJoystick()
 
-        if started:
-            pi.set_servo_pulsewidth(ESCRIGHT, rightSpeed)
-            pi.set_servo_pulsewidth(ESCLEFT, leftSpeed)
-            pi.set_servo_pulsewidth(ESCFRONT, frontSpeed)
-            pi.set_servo_pulsewidth(ESCBACK, backSpeed)
-            cont_data.write(str([frontSpeed, backSpeed, leftSpeed, rightSpeed, trianglePress]) + '\n')
-            cont_data.flush()
-            
-        else:
-            pi.set_servo_pulsewidth(ESCRIGHT, 1488)
-            pi.set_servo_pulsewidth(ESCLEFT, 1488)
-            pi.set_servo_pulsewidth(ESCFRONT,1488)
-            pi.set_servo_pulsewidth(ESCBACK, 1488)
-            cont_data.write(str([1488, 1488, 1488, 1488, trianglePress]) + '\n')
-            cont_data.flush()
+    if started:
+        pi.set_servo_pulsewidth(ESCRIGHT, rightSpeed)
+        pi.set_servo_pulsewidth(ESCLEFT, leftSpeed)
+        pi.set_servo_pulsewidth(ESCFRONT, frontSpeed)
+        pi.set_servo_pulsewidth(ESCBACK, backSpeed)
+        cont_data.write(str([frontSpeed, backSpeed, leftSpeed, rightSpeed, trianglePress]) + '\n')
+        cont_data.flush()
         
-        
-        if os.path.getsize('controller_data.txt') > 1000000: # clears if the file is over 1 MB
-            cont_data.seek(0)
-            cont_data.truncate()
+    else:
+        pi.set_servo_pulsewidth(ESCRIGHT, 1488)
+        pi.set_servo_pulsewidth(ESCLEFT, 1488)
+        pi.set_servo_pulsewidth(ESCFRONT,1488)
+        pi.set_servo_pulsewidth(ESCBACK, 1488)
+        cont_data.write(str([1488, 1488, 1488, 1488, trianglePress]) + '\n')
+        cont_data.flush()
+    
+    
+    if os.path.getsize('controller_data.txt') > 1000000: # clears if the file is over 1 MB
+        cont_data.seek(0)
+        cont_data.truncate()
