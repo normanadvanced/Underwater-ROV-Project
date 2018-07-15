@@ -9,7 +9,7 @@ import threading
 
 #os.system("printf 'raspberry \n' | sudo -S python3 HornClient.py &")
 
-HOST = '169.254.208.126'
+HOST = os.popen("echo $(getent hosts NARROVCommandModule.local |cut -f1 -d ' ')").readline()
 PORT = 5009
 BUFSIZE = 1024
 ADDRESS = (HOST, PORT)
@@ -17,7 +17,7 @@ ADDRESS = (HOST, PORT)
 pi = pigpio.pi()
 ESCRIGHT = 13
 ESCLEFT = 27
-ESCBACK = 2
+ESCBACK = 21
 ESCFRONT = 5
 
 horizontalSpeed = 1488    #the speed determined by r1 and l1
@@ -53,8 +53,12 @@ while True:
 
 
 def _triangle():        #please look at Chris/Pranav. Not nessecery for movement
+    global trianglePress
     trianglePress = 1
+    print("Triangle " + str(trianglePress))
+    
 def _triangleReleased():
+    global trianglePress
     trianglePress = 0
     
 def _circle():
@@ -167,7 +171,7 @@ def _leftJoystickRight():
     global horizontalSpeed
     global leftSpeed
     print("the left joystick was moved to the right")
-    if horizontalSpeed > 1488:
+    if horizontalSpeed >= 1488:
         rightSpeed = horizontalSpeed - 200 * turbo
     if horizontalSpeed < 1488:
         leftSpeed = horizontalSpeed + 200 * turbo
@@ -178,7 +182,7 @@ def _leftJoystickLeft():
     global leftSpeed
     global rightSpeed
     print("the left joystick was moved to the left")
-    if horizontalSpeed > 1488:
+    if horizontalSpeed >= 1488:
         leftSpeed = horizontalSpeed - 200 * turbo
     print("LEFTSPEED" + str(leftSpeed))
     if horizontalSpeed < 1488:
@@ -205,11 +209,6 @@ cont_data.seek(0)   # clears file
 cont_data.truncate()
 
 while True:
-    #global rightHatPressed, leftHatPressed, upHatPressed, downHatPressed
-    #rightHatPressed = False
-    #leftHatPressed = False
-    #upHatPressed = False
-    #downHatPressed = False
     button = decode(server.recv(BUFSIZE), "ascii")
     print(button)
 
@@ -255,12 +254,18 @@ while True:
         elif button == "upHatPressed":
             upHatPressed = True
             downHatPressed = False
+            rightHatPressed = False
+            leftHatPressed = False
         elif button == "downHatPressed":
             downHatPressed = True
             upHatPressed = False
-        elif button == "no vertical hat pressed":
+            rightHatPressed = False
+            leftHatPressed = False
+        elif button == "no hat pressed":
             upHatPressed = False
             downHatPressed = False
+            rightHatPressed = False
+            leftHatPressed = False
 
         elif button == "left":
             leftJoystickLeft = True
@@ -277,13 +282,13 @@ while True:
         elif button == "rightHatPressed":
             rightHatPressed = True
             leftHatPressed = False
+            upHatPressed = False
+            downHatPressed = False
         elif button == "leftHatPressed":
             leftHatPressed = True
             rightHatPressed = False
-        elif button == "no horizontal hat pressed":
-            rightHatPressed = False
-            leftHatPressed = False
-
+            upHatPressed = False
+            downHatPressed = False
         if upHatPressed:
             _upHat()
         elif downHatPressed:
@@ -305,21 +310,24 @@ while True:
             print("(_leftJoystickLeft()")
         else:
             _noHorizontalHatOrJoystick()
-            print("noHorizontalHatOrJoystick")
 
         if started:
             pi.set_servo_pulsewidth(ESCRIGHT, rightSpeed)
             pi.set_servo_pulsewidth(ESCLEFT, leftSpeed)
             pi.set_servo_pulsewidth(ESCFRONT, frontSpeed)
             pi.set_servo_pulsewidth(ESCBACK, backSpeed)
+            cont_data.write(str([frontSpeed, backSpeed, leftSpeed, rightSpeed, trianglePress]) + '\n')
+            cont_data.flush()
+            
         else:
             pi.set_servo_pulsewidth(ESCRIGHT, 1488)
             pi.set_servo_pulsewidth(ESCLEFT, 1488)
             pi.set_servo_pulsewidth(ESCFRONT,1488)
             pi.set_servo_pulsewidth(ESCBACK, 1488)
+            cont_data.write(str([1488, 1488, 1488, 1488, trianglePress]) + '\n')
+            cont_data.flush()
         
-        cont_data.write(str([frontSpeed, backSpeed, leftSpeed, rightSpeed, trianglePress]) + '\n')
-        cont_data.flush()
+        
         if os.path.getsize('controller_data.txt') > 1000000: # clears if the file is over 1 MB
             cont_data.seek(0)
             cont_data.truncate()

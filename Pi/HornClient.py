@@ -4,7 +4,7 @@ from time import sleep
 from codecs import decode
 
 
-HOST = '169.254.208.126'
+HOST = os.popen("getent hosts NARROVCommandModule.local |cut -f1 -d ' '").readline()
 PORT = 5008
 BUFSIZE = 1024
 ADDRESS = (HOST, PORT)
