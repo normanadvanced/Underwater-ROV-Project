@@ -1,9 +1,5 @@
 //Depth/Temperature library can be found here: https://github.com/bluerobotics/BlueRobotics_MS5837_Library
 
-#include <Thread.h>
-#include <ThreadController.h>
-
-
 ///For the Gyroscope////////////////////////////////////////////////////////////
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
@@ -81,26 +77,14 @@ void get_ping_loop() {
 
     // read the value from the sensor:
   sensorValue = analogRead(HydrophonePin);
-    
-  if (sensorValue > (400 + sensorMax)){ 
-    Serial.print("Ping\n");
-    delay(800);
-  }
+  Serial.print("Ping: ");
+  Serial.print(sensorValue);
+  Serial.print("\n");
   delay(1);  
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 
-
-
-
-
-
-
-
-Thread gyro = Thread();
-Thread ping = Thread();
-Thread pressure = Thread();
 
 
 void setup() {
@@ -110,17 +94,14 @@ void setup() {
   //Initialise the sensors
   if(!bno.begin())
   {
-    /* There was a problem detecting the BNO055 ... check your connections */
+    /* bad connection */
     Serial.print("No BNO055 detected");
-    //while(1){}
   }
 
   while (!sensor.init()) {
+    /* Make sure to use SDA and SCL ports*/
     Serial.println("Failed!");
-    /*
-    Serial.println("Are SDA/SCL connected correctly?");
-    Serial.println("Bad Connection: White=SDA (A20,A4), Green=SCL (A21,A5)");
-    Serial.println("\n\n\n");*/
+    Serial.println("Bad Connection, make sure you connect: White=SDA (A20,A4), Green=SCL (A21,A5)");
     delay(2000);
   }
 
@@ -128,20 +109,16 @@ void setup() {
   sensor.setFluidDensity(997); // kg/m^3 (freshwater, 1029 for seawater)
    
   delay(100);
-
   
   bno.setExtCrystalUse(true);
-
-  gyro.onRun(get_gyro_loop);
-  ping.onRun(get_ping_loop);
-  pressure.onRun(get_p_t_loop);
   
 }
 
 void loop(){
   
-  gyro.run();
-  ping.run();
-  pressure.run();
+  get_gyro_loop();
+  get_ping_loop();
+  get_p_t_loop();
+
   }
   
