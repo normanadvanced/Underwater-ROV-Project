@@ -14,12 +14,12 @@ horn = serial.Serial('/dev/ttyACM0', 115200, timeout=.1)  # COM4 for windows, /d
 
 
 #stuff needed for the server
-HOST = 'NARROVCommandModule.local'
-PORT = 5006
+HOST = os.popen("echo $(getent hosts NARROVCommandModule.local |cut -f1 -d ' ')").readline()
+PORT = 5003
 ADDRESS = (HOST, PORT)
 server = socket(AF_INET, SOCK_STREAM)
 server.bind(ADDRESS)
-server.listen(1)
+server.listen(5)
 
 
 print("Waiting for connection horn . . .")
@@ -29,11 +29,16 @@ print("horn connected from: ", address)
 
 #pygame.event.setBlocked
 
-
-while True:
-    if str(horn.readline())[2:-5] == 'Honk':
-        honk_time = "Honk time: " + str(time.time())
-        client.send(bytes(honk_time, "ascii"))
+try:
+    while True:
+        if str(horn.readline())[2:-5] == 'Honk':
+            honk_time = "Honk time: " + str(time.time())
+            client.send(bytes(honk_time, "ascii"))
+except:
+    server.close()
+    server.shutdown(SHUT_RWDR)
+    os.system("cd ~/Underwater-ROV-Project/ && bash ~/Underwater-ROV-Project/cleanup.sh")
+    print("Horn Server Shutdown")
 
 
 

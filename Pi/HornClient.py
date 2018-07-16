@@ -4,8 +4,8 @@ from time import sleep
 from codecs import decode
 
 
-HOST = 'NARROVCommandModule.local'
-PORT = 5006
+HOST = os.popen("getent hosts NARROVCommandModule.local |cut -f1 -d ' '").readline()
+PORT = 5008
 BUFSIZE = 1024
 ADDRESS = (HOST, PORT)
 
@@ -16,7 +16,7 @@ while True:
         break
     except:
         pass
-
+print("horn connected")
 #os.system("printf 'raspberry \n' | sudo -S python3 ControllerClient2.py &")
 
 def _calibrate(time):
