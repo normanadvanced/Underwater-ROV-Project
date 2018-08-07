@@ -1,37 +1,48 @@
 import os
-os.system("sudo pigpiod")
+os.system("printf 'raspberry\n' | sudo -S pigpiod")
 from socket import *
 from time import sleep
 from codecs import decode
 import pigpio
-import picamera
 import threading
+#import SharedFunctions
 
-HOST = '169.254.12.66'
-PORT = 5000
+#os.system("printf 'raspberry \n' | sudo -S python3 HornClient.py &")
+
+HOST = os.popen("echo $(getent hosts NARROVCommandModule.local |cut -f1 -d ' ')").readline()
+print(HOST)
+#HOST='169.254.208.126'
+PORT = 5006
 BUFSIZE = 1024
 ADDRESS = (HOST, PORT)
 
 pi = pigpio.pi()
-ESCRIGHT = 5
+ESCRIGHT = 13
 ESCLEFT = 21
-ESCBACKLIFT = 13 #unknown so far
-ESCFRONTLIFT = 27 #also still known so far
+ESCBACK = 27
+ESCFRONT = 5
 
-baseSpeed = 1488	#the speed determined by r1 and l1
-rightSpeed = 1488	#the speed that the right motor is moving at
-leftSpeed = 1488	#the speed that the left motor is moving at
-frontSpeed = 0
-backSpeed = 0
-pictureCount = 0	#GUI thing, can delete
-started = False		#Checks if the motors should be able to move or not
-rightHatPressed = False	#Checks if the right hat has been pressed
-leftHatPressed = False	#Checks if the left hat has been pressed
-upHatPressed = False	#Checks if the up hat has been pressed
-downHatPressed = False	#Checks if the down hat has been pressed
-leftJoystickLeft = False	#Checks if the left joystick has been moved to the left
-leftJoystickRight = False	#Checks if the left joystick has been moved to the right
-turbo = 1		#Checks if the turns need to be moved turbo
+horizontalSpeed = 1488    #the speed determined by r1 and l1
+verticalSpeed = 1488
+rightSpeed = 1488    #the speed that the right motor is moving at
+leftSpeed = 1488    #the speed that the left motor is moving at
+frontSpeed = 1488
+backSpeed = 1488
+
+
+started = False        #Checks if the motors should be able to move or not
+
+rightHatPressed = False    #Checks if the right hat has been pressed
+leftHatPressed = False    #Checks if the left hat has been pressed
+upHatPressed = False    #Checks if the up hat has been pressed
+downHatPressed = False    #Checks if the down hat has been pressed
+leftJoystickLeft = False    #Checks if the left joystick has been moved to the left
+leftJoystickRight = False    #Checks if the left joystick has been moved to the right
+rightJoystickUp = False    #Checks if the left joystick has been moved to the left
+rightJoystickDown = False    #Checks if the left joystick has been moved to the right
+turbo = 1        #Checks if the turns need to be moved turbo
+turboVert = 1   #vertical turbo
+
 trianglePress = 0
 
 while True:
@@ -42,138 +53,174 @@ while True:
     except:
         pass
 
-def _triangle():		#please look at Chris/Pranav. Not nessecery for movement
+
+
+
+
+def _triangle():        #please look at Chris/Pranav. Not nessecery for movement
+    global trianglePress
     trianglePress = 1
-
-def _square():
-    '''toggle the GUI'''
-    print("square commands here")
-
-def _x():
-    '''toggle 2'''
-    print("x commands here")
-
+    print("Triangle " + str(trianglePress))
+    
+def _triangleReleased():
+    global trianglePress
+    trianglePress = 0
+    
 def _circle():
     '''starts the translational motors'''
-    global rightSpeed
-    global leftSpeed
     global started
     if not started:
         #speed = 1488
         started = True
-        #pi.set_servo_pulsewidth(ESCRIGHT, speed)
-        #pi.set_servo_pulsewidth(ESCLEFT, speed)
         print("Started")
     elif started:
         started = False
-        #speed = 1488
         print("Stopped")
+        
+        
     
-def _r1():
-    '''increases the speed'''
-    global baseSpeed
+def _r1(): #Increases horizontal speed
+    global horizontalSpeed,leftSpeed,rightSpeed
     if started == True:
-        if baseSpeed < 1990:
-            baseSpeed += 10
+        if horizontalSpeed < 1990:
+            horizontalSpeed += 10
         else:
-            baseSpeed = 1998   
-        print("base: ", baseSpeed)
-        #also add GUI message
-    
-def _r2(magnitude):
-    '''makes the robot asend'''
-    print("magnitude: ", magnitude)
-    print("raising at ", (1488 + 255 * magnitude), " speed")
-    pi.set_servo_pulsewidth(ESCBACKLIFT, 1488 + 255 * magnitude)
-    pi.set_servo_pulsewidth(ESCFRONTLIFT, 1488 + 255 * magnitude)
-    
-def _l1():
-    '''decreses translational speed'''
-    global baseSpeed
+            horizontalSpeed = 1998   
+        print("base: ", horizontalSpeed)
+        leftSpeed = horizontalSpeed
+        rightSpeed = horizontalSpeed
+
+def _l1(): 
+    '''Decreases horizontal speed'''
+    global horizontalSpeed, leftSpeed, rightSpeed
     if started == True:
-        if baseSpeed > 708:
-            baseSpeed -= 10
+        if horizontalSpeed > 708:
+            horizontalSpeed -= 10
         else:
-            baseSpeed = 708
-        print("base: ", baseSpeed)
-        #also add GUI message
+            horizontalSpeed = 708
+        print("base: ", horizontalSpeed)
+        leftSpeed = horizontalSpeed
+        rightSpeed = horizontalSpeed
+        print(leftSpeed)
+        print(rightSpeed)
     
-def _l2(magnitude):
-    '''makes the robot desend'''
-    print("magnitude: ", magnitude)
-    print("Lowering at ", (1488 + 390 * magnitude), " speed")
-    pi.set_servo_pulsewidth(ESCBACKLIFT, 1488 + 390 * magnitude)
-    pi.set_servo_pulsewidth(ESCFRONTLIFT, 1488 + 390 * magnitude)
+def _r2(magnitude): 
+    '''Goes up'''
+    global verticalSpeed, frontSpeed, backSpeed
+    if started == True:
+        verticalSpeed = 1488 + 255 * magnitude
+        frontSpeed = verticalSpeed
+        backSpeed = verticalSpeed
+    
+def _l2(magnitude): 
+    '''Goes down'''
+    global verticalSpeed, frontSpeed, backSpeed
+    if started == True:
+        verticalSpeed = 1488 + 390 * magnitude
+        frontSpeed = verticalSpeed
+        backSpeed = verticalSpeed
 
 def _leftHat():
     '''makes the robot do a pivot turn to the left'''
     global leftSpeed
     global rightSpeed
-    print("pivotLeft")
-    leftSpeed = 1388
-    rightSpeed = 1588
-
-def _noHorizontalHatOrJoystick():
-	'''Makes the robot drive straight again'''
-	global leftSpeed
-	global rightSpeed
-	global baseSpeed
-	print("No horizontal")
-	leftSpeed = baseSpeed
-	rightSpeed = baseSpeed
+    if started == True:
+        leftSpeed = 1388
+        rightSpeed = 1588
 
 def _rightHat():
     '''makes the robot do a pivot turn to the right'''
     global rightSpeed
     global leftSpeed
-    print("pivotRight")
-    leftSpeed = 1588
-    rightSpeed = 1388
+    if started == True:
+        leftSpeed = 1588
+        rightSpeed = 1388
+
+def _noHorizontalHatOrJoystick():
+    '''Makes the robot drive straight again'''
+    global leftSpeed
+    global rightSpeed
+    global horizontalSpeed
+    
+    leftSpeed = horizontalSpeed
+    rightSpeed = horizontalSpeed
+def _noVerticalHatOrJoystick():
+    '''Makes the robot drive straight again'''
+    global frontSpeed
+    global backSpeed
+    global verticalSpeed
+    
+    frontSpeed = verticalSpeed
+    backSpeed = verticalSpeed
 
 def _upHat():
-	'''makes the robot pitch up'''
-	pi.set_servo_pulsewidth(ESCBACKLIFT, 1438)
-	pi.set_servo_pulsewidth(ESCFRONTLIFT, 1538)
+    '''makes the robot pitch up'''
+    global backSpeed
+    global frontSpeed
+    if started == True:
+        backSpeed = 1438
+        frontSpeed = 1538
 
 def _downHat():
-	'''makes the robot pitch down'''
-	pi.set_servo_pulsewidth(ESCBACKLIFT, 1538)
-	pi.set_servo_pulsewidth(ESCFRONTLIFT, 1438)
+    '''makes the robot pitch down'''
+    global backSpeed
+    global frontSpeed
+    if started == True:
+        backSpeed = 1538
+        frontSpeed = 1438
 
 def _noVerticalHat():
-	'''makes the robot stop pitching'''
-	pi.set_servo_pulsewidth(ESCBACKLIFT, 1488)
-	pi.set_servo_pulsewidth(ESCFRONTLIFT, 1488)
+    '''makes the robot stop pitching'''
+    global backSpeed
+    global frontSpeed
+    global verticalSpeed
+    
+    backSpeed = verticalSpeed
+    frontSpeed = verticalSpeed
 
 def _leftJoystickRight():
-	'''makes the robot move to the right'''
-	global rightSpeed
-	global baseSpeed
-	global leftSpeed
-	print("the left joystick was moved to the right")
-	if baseSpeed > 1488:
-		rightSpeed = baseSpeed - 200 * turbo
-	if baseSpeed < 1488:
-		leftSpeed = baseSpeed + 200 * turbo
+    '''makes the robot move to the right'''
+    global rightSpeed
+    global horizontalSpeed
+    global leftSpeed
+    print("the left joystick was moved to the right")
+    if horizontalSpeed >= 1488:
+        rightSpeed = horizontalSpeed - 200 * turbo
+    if horizontalSpeed < 1488:
+        leftSpeed = horizontalSpeed + 200 * turbo
 
 def _leftJoystickLeft():
-	'''makes the robot move to the left'''
-	global baseSpeed
-	global leftSpeed
-	global rightSpeed
-	print("the left joystick was moved to the left")
-	if baseSpeed > 1488:
-		leftSpeed = baseSpeed - 200 * turbo
-	if baseSpeed < 1488:
-		rightSpeed = baseSpeed + 200 * turbo
+    '''makes the robot move to the left'''
+    global horizontalSpeed
+    global leftSpeed
+    global rightSpeed
+    print("the left joystick was moved to the left")
+    if horizontalSpeed >= 1488:
+        leftSpeed = horizontalSpeed - 200 * turbo
+    print("LEFTSPEED" + str(leftSpeed))
+    if horizontalSpeed < 1488:
+        rightSpeed = horizontalSpeed + 200 * turbo
+        
+def _rightJoystickDown():
+    '''makes the robot move down'''
+    global frontSpeed, backSpeed, verticalSpeed
+    print("the  joystick was moved down")
+    frontSpeed = 1469 - 50 * turboVert
+    backSpeed = 1100 - 200 * turboVert
 
-def _rightJoystick():
-	'''we have not decided on what to do with this yet'''
-	pass
+def _rightJoystickUp():
+    '''makes the robot move up'''
+    global frontSpeed, backSpeed, verticalSpeed
+    print("the  joystick was moved up")
+    frontSpeed = 1509 + 200 * turboVert
+    backSpeed = 1509 + 200 * turboVert
 
 def _center():
     '''makes the robot shoot up at full speed'''
     print("OFF")
+
+
+
 
 def _calibrate(time):
     '''calibrates the robot's distance'''
@@ -183,40 +230,27 @@ def _calibrate(time):
     #compare the recieved time to the time sent and set that to a variable
 
 
-def get_honk_time():
-    heard = open('sent.txt', 'a')
-    heard.seek(0)
-    heard.truncate()
-    print("starting horn thread");
-    while True:
-        server_data = decode(server.recv(BUFSIZE), "ascii")
-        if str(server_data)[0:4] == "Honk":
-            honk_time = server_data[11:]
-            heard.write(float(honk_time))
-            heard.flush()
-            print(honk_time)
-        if os.path.getsize('sent.txt') > 1000000:  # clear file after it reaches 1 MB
-            f.seek(0)
-            f.truncate()
 
-
-horn_honked_thread = threading.Thread(target=get_honk_time())
-horn_honked_thread.daemon = True
-horn_honked_thread.start()
+cont_data = open('controller_data.txt', 'a')
+cont_data.seek(0)   # clears file
+cont_data.truncate()
 
 while True:
-
     button = decode(server.recv(BUFSIZE), "ascii")
     print(button)
+
+    
     try:
         analogButton = float(button)
         analogButton = round(analogButton, 4)
-        print("got here %s" % analogButton)
         if analogButton < 2.5 and analogButton > -2.5:
             if analogButton < 0:
-                _l2(analogButton)
+                #_l2(analogButton)
+                pass
             else:
-                _r2(analogButton)
+                #_r2(analogButton)
+                pass
+           
 
     except ValueError:
         if button == "circle":
@@ -232,6 +266,9 @@ while True:
 
         elif button == "triangle":
             _triangle()
+            
+        elif button == "triangleReleased":
+            _triangleReleased()
 
         elif button == "center":
             _center()
@@ -247,39 +284,52 @@ while True:
         elif button == "upHatPressed":
             upHatPressed = True
             downHatPressed = False
+            rightHatPressed = False
+            leftHatPressed = False
         elif button == "downHatPressed":
             downHatPressed = True
             upHatPressed = False
-        elif button == "no vertical hat pressed":
+            rightHatPressed = False
+            leftHatPressed = False
+        elif button == "no hat pressed":
             upHatPressed = False
             downHatPressed = False
+            rightHatPressed = False
+            leftHatPressed = False
 
         elif button == "left":
-            # _leftJoystickLeft()
             leftJoystickLeft = True
         elif button == "right":
-            # _leftJoystickRight()
             leftJoystickRight = True
         elif button == "not left or right":
             leftJoystickRight = False
             leftJoystickLeft = False
-
+        elif button == "up":
+            rightJoystickUp = True
+        elif button == "down":
+            rightJoystickDown = True
+        elif button == "not down or up":
+            rightJoystickUp = False
+            rightJoystickDown = False
         elif button == "leftJoystickPressed":
             turbo = 2
-
         elif button == "leftJoystickReleased":
             turbo = 1
-
+        elif button == "rightJoystickPressed":
+            turboVert = 2
+        elif button == "rightJoystickReleased":
+            turboVert = 1
+            
         elif button == "rightHatPressed":
             rightHatPressed = True
             leftHatPressed = False
+            upHatPressed = False
+            downHatPressed = False
         elif button == "leftHatPressed":
             leftHatPressed = True
             rightHatPressed = False
-        elif button == "no horizontal hat pressed":
-            rightHatPressed = False
-            leftHatPressed = False
-
+            upHatPressed = False
+            downHatPressed = False
         if upHatPressed:
             _upHat()
         elif downHatPressed:
@@ -289,18 +339,42 @@ while True:
 
         if rightHatPressed:
             _rightHat()
+            print("_rightHat()")
         elif leftHatPressed:
             _leftHat()
+            print("_leftHat()")
         elif leftJoystickRight:
+            print("_leftJoystickRight()")
             _leftJoystickRight()
         elif leftJoystickLeft:
             _leftJoystickLeft()
+            print("(_leftJoystickLeft()")
+        elif rightJoystickUp:
+            print("_rightJoystickUp()")
+            _rightJoystickUp()
+        elif rightJoystickDown:
+            _rightJoystickDown()           
         else:
             _noHorizontalHatOrJoystick()
+            _noVerticalHatOrJoystick()
 
-        if started:
-            pi.set_servo_pulsewidth(ESCRIGHT, rightSpeed)
-            pi.set_servo_pulsewidth(ESCLEFT, leftSpeed)
-        else:
-            pi.set_servo_pulsewidth(ESCRIGHT, 1488)
-            pi.set_servo_pulsewidth(ESCLEFT, 1488)
+    if started:
+        pi.set_servo_pulsewidth(ESCRIGHT, rightSpeed)
+        pi.set_servo_pulsewidth(ESCLEFT, leftSpeed)
+        pi.set_servo_pulsewidth(ESCFRONT, frontSpeed)
+        pi.set_servo_pulsewidth(ESCBACK, backSpeed)
+        cont_data.write(str([frontSpeed, backSpeed, leftSpeed, rightSpeed, trianglePress]) + '\n')
+        cont_data.flush()
+        
+    else:
+        pi.set_servo_pulsewidth(ESCRIGHT, 1488)
+        pi.set_servo_pulsewidth(ESCLEFT, 1488)
+        pi.set_servo_pulsewidth(ESCFRONT,1488)
+        pi.set_servo_pulsewidth(ESCBACK, 1488)
+        cont_data.write(str([1488, 1488, 1488, 1488, trianglePress]) + '\n')
+        cont_data.flush()
+    
+    
+    if os.path.getsize('controller_data.txt') > 1000000: # clears if the file is over 1 MB
+        cont_data.seek(0)
+        cont_data.truncate()
