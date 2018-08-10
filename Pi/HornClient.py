@@ -43,8 +43,7 @@ def get_honk_time():
             f.seek(0)
             f.truncate()
 
-#horn_honked_thread = threading.Thread(target=get_honk_time())
-#horn_honked_thread.daemon = True
+
 print("honk")
 #horn_honked_thread.start()
 print("honk 2")

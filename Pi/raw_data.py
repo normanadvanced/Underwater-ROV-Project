@@ -1,7 +1,7 @@
 import serial
 import os
 import time
-arduino = serial.Serial('/dev/ttyACM0', 115200, timeout=.1)  # COM4 for windows, /dev/ttyACM0
+arduino = serial.Serial('COM4', 115200, timeout=.1)  # COM4 for windows, /dev/ttyACM0
 global roll, pitch, yaw, temperature, depth
 temperature = 0
 depth = 0
@@ -17,7 +17,7 @@ while True:
 
     try:
         data_raw = str(arduino.readline())
-        print(data_raw)
+        #print(data_raw)
         data_shaved = ""
         for i in range(len(data_raw) - 5):
             data_shaved += (data_raw[i + 2])
@@ -30,7 +30,7 @@ while True:
             depth = float(data_shaved[6:-4])
         elif data_shaved[0:1] == "P": # for hydrophone
             sound_size = float(data_shaved[6:])
-            #print(sound_size)
+            print(data_shaved)
             if sound_size > 400:
                 heard_time = float(time.time())
         elif len(data_shaved) > 9:  # for gyro
