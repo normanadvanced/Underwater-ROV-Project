@@ -70,8 +70,8 @@ def update(dt):
   pitch = float(data[0])
   roll = float(data[1])
   yaw = float(data[2])
-  temperature = data[3]
-  depth = [data[4]]
+  temperature = float(data[3])
+  depth = float(data[4])
   f.close()
   if not window.visible:
     window.set_visible()
