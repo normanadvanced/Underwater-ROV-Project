@@ -14,12 +14,11 @@ import threading
 #stuff needed for the server
 HOST = str(os.popen("echo $(getent hosts NARROVCommandModule.local |cut -f1 -d ' ')").readline())
 #HOST = '169.254.208.126'
-print("Host is " + HOST) 
+print("Host is " + HOST)
 PORT = 5006
 ADDRESS = (HOST, PORT)
-server = socket(AF_INET, SOCK_STREAM)
-server.bind(ADDRESS)
-server.listen(1)
+server = socket(AF_INET, SOCK_DGRAM)
+#server.bind(ADDRESS)
 print("Go!")
 #keeps trying to connect to the joystick until it succeeds
 
@@ -43,9 +42,9 @@ pygame.display.init()
 screen = pygame.display.set_mode((1,1))
 
 
-print("Waiting for connection controller . . .")
-client, address = server.accept()
-print("ControllerCLi connected from: ", address)
+#print("Waiting for connection controller . . .")
+#client, address = server.accept()
+#print("ControllerCLi connected from: ", address)
 
 
 #pygame.event.setBlocked
@@ -82,53 +81,54 @@ done = False
 try:
 
     while not done:
+        server.sendto((bytes("", "ascii")),ADDRESS)
         for event in pygame.event.get():
             if event.type == pygame.JOYBUTTONDOWN:
                 # print(event.dict, event.joy, event.button, "pressed")
                 if event.button == 1:
-                    client.send(bytes("circle", "ascii"))
+                    server.sendto((bytes("circle", "ascii")),ADDRESS)
                 elif event.button == 2:
-                    client.send(bytes("triangle", "ascii"))
+                    server.sendto((bytes("triangle", "ascii")),ADDRESS)
                 #elif event.button == 3:
                     #pass # we don't use square
                     #client.send(bytes("square", "ascii"))
-                #elif event.button == 0:
-                    #pass # we don't use x
-                    #client.send(bytes("x", "ascii"))
+                elif event.button == 0:
+                    pass # we don't use x
+                    server.sendto((bytes("x", "ascii")),ADDRESS)
                 elif event.button == 4:
-                    client.send(bytes("l1", "ascii"))
+                    server.sendto(bytes("l1", "ascii"),ADDRESS)
                 elif event.button == 5:
-                    client.send(bytes("r1", "ascii"))
+                    server.sendto((bytes("r1", "ascii")),ADDRESS)
                 elif event.button == 10:
                     if not centerSent:
                         timeCenterPressed = time.time()
                         print(time.time())
                     else:
                         centerSent = False
-                        client.send(bytes("center", "ascii"))
+                    server.sendto((bytes("center", "ascii")),ADDRESS)
                         os.system("cd ~/Underwater-ROV-Project/ && bash ~/Underwater-ROV-Project/cleanup.sh")
           #      elif event.button == 7:
           #          r2Pressed = True
           #      elif event.button == 6:
           #          l2Pressed = True
                 elif event.button == 11:
-                    client.send(bytes("leftJoystickPressed", "ascii"))
+                    server.sendto((bytes("leftJoystickPressed", "ascii")),ADDRESS)
                 elif event.button == 12:
-                    client.send(bytes("rightJoystickPressed", "ascii"))
+                    server.sendto((bytes("rightJoystickPressed", "ascii")),ADDRESS)
             elif event.type == pygame.JOYAXISMOTION:
                 if event.axis == LJOYX_AXIS:
                     # print(event.value)
                     if event.value > .6:
                         if lJOY_MOVED == False:
-                            client.send(bytes("right", "ascii"))
+                            server.sendto(bytes("right", "ascii"), ADDRESS)
                             lJOY_MOVED = True
                     elif event.value < -.6 :
                         if lJOY_MOVED == False:
-                            client.send(bytes("left", "ascii"))
+                            server.sendto(bytes("left", "ascii"), ADDRESS)
                             lJOY_MOVED = True
                     else:
                         if lJOY_MOVED == True:
-                            client.send(bytes("not left or right", "ascii"))
+                            server.sendto(bytes("not left or right", "ascii"), ADDRESS)
                             lJOY_MOVED = False
                         if lJOY_MOVED == False:
                             pass
@@ -136,15 +136,15 @@ try:
                     # print(event.value)
                     if event.value < -.6:
                         if rJOY_MOVED == False:
-                            client.send(bytes("up", "ascii"))
+                            server.sendto(bytes("up", "ascii"), ADDRESS)
                             rJOY_MOVED = True
                     elif event.value > .6 :
                         if rJOY_MOVED == False:
-                            client.send(bytes("down", "ascii"))
+                            server.sendto(bytes("down", "ascii"), ADDRESS)
                             rJOY_MOVED = True
                     else:
                         if rJOY_MOVED == True:
-                            client.send(bytes("not down or up", "ascii"))
+                            server.sendto(bytes("not down or up", "ascii"), ADDRESS)
                             rJOY_MOVED = False
                         if rJOY_MOVED == False:
                             pass
@@ -154,12 +154,12 @@ try:
                 if event.button == 10:
                     timeCenterPressed = 0
                 elif event.button == 11:
-                    client.send(bytes("leftJoystickReleased", "ascii"))
+                    server.sendto(bytes("leftJoystickReleased", "ascii"), ADDRESS)
                     print("", end="")
                 elif event.button == 12:
-                    client.send(bytes("rightJoystickReleased", "ascii"))
+                    server.sendto(bytes("rightJoystickReleased", "ascii"), ADDRESS)
                 elif event.button == 2:                    #JUST ADDED THIS FOR MY PROGRAM. YOU MAY BE ABLE TO DELETE
-                    client.send(bytes("triangleReleased", "ascii"))
+                    server.sendto(bytes("triangleReleased", "ascii"), ADDRESS)
          #       elif event.button == L2_BUTTON:
          #           l2Released = True
          #           l2Pressed = False
@@ -169,31 +169,31 @@ try:
             elif event.type == pygame.JOYHATMOTION:
                 print((event.joy, event.hat, event.value))
                 if event.value[0] == 1:
-                    client.send(bytes("rightHatPressed", "ascii"))
+                    server.sendto(bytes("rightHatPressed", "ascii"), ADDRESS)
                     print("", end="")
                 elif event.value[0] == -1:
-                    client.send(bytes("leftHatPressed", "ascii"))
+                    server.sendto(bytes("leftHatPressed", "ascii"), ADDRESS)
                     print("", end="")
                     # elif event.value[0] == 0:
                     #client.send(bytes("no horizontal hat pressed", "ascii"))
                     #print("", end="")
 
                 elif event.value[1] == 1:
-                    client.send(bytes("upHatPressed", "ascii"))
+                    server.sendto(bytes("upHatPressed", "ascii"), ADDRESS)
                    # client.send(bytes("no horizontal hat pressed", "ascii"))
                     print("", end="")
                 elif event.value[1] == -1:
-                    client.send(bytes("downHatPressed", "ascii"))
+                    server.sendto(bytes("downHatPressed", "ascii"), ADDRESS)
                    # client.send(bytes("no horizontal hat pressed", "ascii"))
                     print("", end="")
                 else:
                     #client.send(bytes("no vertical hat pressed", "ascii"))
-                    client.send(bytes("no hat pressed", "ascii"))
+                    server.sendto(bytes("no hat pressed", "ascii"), ADDRESS)
                     print("no hat")
         if timeCenterPressed + 5 < time.time() and timeCenterPressed != 0 and not centerSent:
             print(time.time() - timeCenterPressed)
             timeCenterPressed = 0
-            client.send(bytes("center", "ascii"))
+            server.sendto(bytes("center", "ascii"), ADDRESS)
             done = True
             centerSent = True
 
@@ -233,4 +233,3 @@ except:
     server.shutdown(SHUT_RWDR)
     print("Controller Server Closed")
     os.system("cd ~/Underwater-ROV-Project/ && bash ~/Underwater-ROV-Project/cleanup.sh")
-
