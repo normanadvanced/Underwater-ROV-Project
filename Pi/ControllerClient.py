@@ -48,7 +48,7 @@ trianglePress = 0
 while True:
     try:
         server = socket(AF_INET, SOCK_STREAM)
-        server.connect(ADDRESS)
+        server.bind(ADDRESS)
         break
     except:
         pass
@@ -236,7 +236,7 @@ cont_data.seek(0)   # clears file
 cont_data.truncate()
 
 while True:
-    button = decode(server.recv(BUFSIZE), "ascii")
+    button, ADDRESS = decode(server.recvfrom(BUFSIZE), "ascii")
     print(button)
 
     
