@@ -24,7 +24,7 @@ hydrophone = pyaudio.PyAudio()
 hydrophone_data = np.fromstring("")
 
 def main():
-    global fulldata, audio_data
+    global fulldata, hydrophone_data
     stream = hydrophone.open(format=pyaudio.paFloat32,
                     channels=CHANNELS,
                     rate=RATE,
@@ -35,7 +35,7 @@ def main():
     while stream.is_active():
         time.sleep(.01)
         sum = 0
-        for bit in audio_data:
+        for bit in hydrophone_data:
             sum += abs(bit)
         print(sum)
         if sum > threshold():
