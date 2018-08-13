@@ -21,18 +21,12 @@ while True:
         data_shaved = ""
         for i in range(len(data_raw) - 5):
             data_shaved += (data_raw[i + 2])
-            #print(data_shaved)
-
         #print(data_shaved)
+
         if data_shaved[0:1] == "T":  # for temperature
             temperature = float(data_shaved[13:-8])
         elif data_shaved[0:1] == "D":  # for depth
             depth = float(data_shaved[6:-4])
-        elif data_shaved[0:1] == "P": # for hydrophone
-            sound_size = float(data_shaved[6:])
-            print(data_shaved)
-            if sound_size > 400:
-                heard_time = float(time.time())
         elif len(data_shaved) > 9:  # for gyro
             imu = data_shaved.split(" ")
             yaw = float(imu[0])
@@ -47,7 +41,7 @@ while True:
         print("")
 
     #print(str([pitch, roll, yaw, temperature, depth])+ '\n')
-    f.write(str([pitch, roll, yaw, temperature, depth, heard_time]) + '\n')
+    f.write(str([pitch, roll, yaw, temperature, depth]) + '\n')
     f.flush()
     if os.path.getsize('data.txt') > 1000000:
         f.seek(0)

@@ -213,9 +213,16 @@ class New_Toplevel():
         # raw_data writes to data.txt for the gui and model to read
         
         try:
-            sent = open('data.txt', 'r')
+            sent = open('sent.txt', 'r')
             self.sent_time = float(sent.readlines()[-1])
             sent.close()
+        except:
+            pass
+
+        try:
+            received = open('received.txt', 'r')
+            self.heard_time = float(received.readlines()[-1])
+            received.close()
         except:
             pass
 
@@ -228,7 +235,6 @@ class New_Toplevel():
             self.yaw = float(self.data[2])
             self.temperature = float(self.data[3])
             self.depth = float(self.data[4])
-            self.heard_time = float(self.data[5])
             f.close()
         except:
             pass

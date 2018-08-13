@@ -25,6 +25,12 @@ hydrophone_data = np.fromstring("")
 
 def main():
     global fulldata, hydrophone_data
+
+    f = open('received.txt', 'a')
+    f.seek(0)
+    f.truncate()
+    f.close()
+
     stream = hydrophone.open(format=pyaudio.paFloat32,
                     channels=CHANNELS,
                     rate=RATE,
@@ -42,7 +48,7 @@ def main():
              print("Ping")
              time.sleep(2)
              #write down ping time
-             f = open('received.txt','a')
+             f = open('received.txt', 'a')
              f.write(str(time.time()) + "\n")
              f.flush()
              f.close()
