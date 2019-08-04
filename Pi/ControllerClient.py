@@ -12,7 +12,7 @@ import threading
 HOST = os.popen("echo $(getent hosts NARROVCommandModule.local |cut -f1 -d ' ')").readline()
 print(HOST)
 #HOST='169.254.208.126'
-PORT = 5006
+PORT = 5000
 BUFSIZE = 1024
 ADDRESS = (HOST, PORT)
 
@@ -47,8 +47,8 @@ trianglePress = 0
 
 while True:
     try:
-        server = socket(AF_INET, SOCK_STREAM)
-        server.connect(ADDRESS)
+        server = socket(AF_INET, SOCK_DGRAM)
+        server.bind(ADDRESS)
         break
     except:
         pass
@@ -236,8 +236,8 @@ cont_data.seek(0)   # clears file
 cont_data.truncate()
 
 while True:
-    button = decode(server.recv(BUFSIZE), "ascii")
-    print(button)
+    button, addr = sock.recvfrom(1024)
+    print button
 
     
     try:
