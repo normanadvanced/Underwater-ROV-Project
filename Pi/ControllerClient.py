@@ -237,7 +237,7 @@ cont_data.truncate()
 
 while True:
     button, addr = sock.recvfrom(1024)
-    print button
+    print(button)
 
     
     try:
