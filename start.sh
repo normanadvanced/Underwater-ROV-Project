@@ -1,4 +1,4 @@
-]#!/bin/bash
+#!/bin/bash
 bash cleanup.sh &
 vncviewer raspberrypi.local &
 sleep 4s
