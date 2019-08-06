@@ -12,10 +12,10 @@ import threading
 #os.system("echo '$(<~/password.txt)' | sudo -S python3 hornServer.py &")
 
 #stuff needed for the server
-HOST = str(os.popen("echo $(getent hosts NARROVCommandModule.local |cut -f1 -d ' ')").readline())
-#HOST = '169.254.208.126'
+#HOST = str(os.popen("echo $(getent hosts NARROVCommandModule.local |cut -f1 -d ' ')").readline())
+HOST = '169.254.208.126'
 print("Host is " + HOST) 
-PORT = 5006
+PORT = 5005
 ADDRESS = (HOST, PORT)
 server = socket(AF_INET, SOCK_STREAM)
 server.bind(ADDRESS)

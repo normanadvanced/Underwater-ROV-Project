@@ -81,7 +81,7 @@ done = False
 try:
 
     while not done:
-        server.sendto((bytes("", "ascii")),ADDRESS)
+        server.sendto((bytes(" ", "ascii")),ADDRESS)
         for event in pygame.event.get():
             if event.type == pygame.JOYBUTTONDOWN:
                 # print(event.dict, event.joy, event.button, "pressed")
@@ -105,7 +105,7 @@ try:
                         print(time.time())
                     else:
                         centerSent = False
-                    server.sendto((bytes("center", "ascii")),ADDRESS)
+                        server.sendto((bytes("center", "ascii")),ADDRESS)
                         os.system("cd ~/Underwater-ROV-Project/ && bash ~/Underwater-ROV-Project/cleanup.sh")
           #      elif event.button == 7:
           #          r2Pressed = True
@@ -155,7 +155,7 @@ try:
                     timeCenterPressed = 0
                 elif event.button == 11:
                     server.sendto(bytes("leftJoystickReleased", "ascii"), ADDRESS)
-                    print("", end="")
+                    print(" ", end=" ")
                 elif event.button == 12:
                     server.sendto(bytes("rightJoystickReleased", "ascii"), ADDRESS)
                 elif event.button == 2:                    #JUST ADDED THIS FOR MY PROGRAM. YOU MAY BE ABLE TO DELETE
@@ -170,10 +170,10 @@ try:
                 print((event.joy, event.hat, event.value))
                 if event.value[0] == 1:
                     server.sendto(bytes("rightHatPressed", "ascii"), ADDRESS)
-                    print("", end="")
+                    print(" ", end=" ")
                 elif event.value[0] == -1:
                     server.sendto(bytes("leftHatPressed", "ascii"), ADDRESS)
-                    print("", end="")
+                    print(" ", end=" ")
                     # elif event.value[0] == 0:
                     #client.send(bytes("no horizontal hat pressed", "ascii"))
                     #print("", end="")
@@ -181,11 +181,11 @@ try:
                 elif event.value[1] == 1:
                     server.sendto(bytes("upHatPressed", "ascii"), ADDRESS)
                    # client.send(bytes("no horizontal hat pressed", "ascii"))
-                    print("", end="")
+                    print(" ", end=" ")
                 elif event.value[1] == -1:
                     server.sendto(bytes("downHatPressed", "ascii"), ADDRESS)
                    # client.send(bytes("no horizontal hat pressed", "ascii"))
-                    print("", end="")
+                    print(" ", end=" ")
                 else:
                     #client.send(bytes("no vertical hat pressed", "ascii"))
                     server.sendto(bytes("no hat pressed", "ascii"), ADDRESS)
@@ -229,7 +229,7 @@ try:
         #    client.send(bytes("0","ascii"))
         #    l2Released = False
 except:
-    server.close()
     server.shutdown(SHUT_RWDR)
+    server.close()
     print("Controller Server Closed")
     os.system("cd ~/Underwater-ROV-Project/ && bash ~/Underwater-ROV-Project/cleanup.sh")
